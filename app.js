@@ -54,16 +54,36 @@ const CONFIG = {
   fog: {
     near: 100,
     far: 350
-  }
+  },
+
+  dataUrl: "./data/mountains.json"
 
 };
 
 
 // ============================================================================
-// ENVIRONMENT DEFINITIONS
+// DATASET
+// ============================================================================
+//
+// Environment definitions are loaded from the terrain dataset in
+// `data/mountains.json`. If the dataset cannot be loaded (for example when
+// opening index.html directly from the filesystem) the application falls
+// back to these built-in defaults.
+//
+// Dataset fields are mapped onto the renderer parameters as follows:
+//
+//   generation.height_scale    -> height
+//   generation.frequency       -> frequency
+//   generation.ridge_strength  -> ridgeStrength
+//   generation.valley_strength -> valleyStrength
+//   generation.peak_sharpness  -> exponent
+//   generation.roughness       -> detailStrength
+//   generation.radial_falloff  -> maskStrength
+//   visual.palette             -> colors
+//
 // ============================================================================
 
-const ENVIRONMENTS = {
+const DEFAULT_ENVIRONMENTS = {
 
   mountains: {
 
@@ -329,6 +349,17 @@ let currentEnvironment = "mountains";
 
 let terrainGenerationId = 0;
 
+let ENVIRONMENTS =
+  DEFAULT_ENVIRONMENTS;
+
+let autoRotate = true;
+
+let wireframe =
+  CONFIG.terrain.wireframe;
+
+let dataSourceLabel =
+  "FALLBACK";
+
 
 // ============================================================================
 // INITIALIZATION
@@ -341,9 +372,22 @@ init();
 // INIT
 // ============================================================================
 
-function init() {
+async function init() {
 
-  createRenderer();
+  try {
+
+    createRenderer();
+
+  }
+  catch (error) {
+
+    showError(
+      "Your browser could not create a WebGL context, which is required to render the 3D terrain."
+    );
+
+    throw error;
+
+  }
 
   createScene();
 
@@ -353,11 +397,20 @@ function init() {
 
   createControls();
 
+  ENVIRONMENTS =
+    await loadEnvironments();
+
+  updateDataSource();
+
+  buildEnvironmentList();
+
   createTerrain(
     currentEnvironment
   );
 
   bindEnvironmentSwitcher();
+
+  bindViewerActions();
 
   updateUI(
     currentEnvironment
@@ -371,6 +424,409 @@ function init() {
   );
 
   animate();
+
+}
+
+
+// ============================================================================
+// LOAD ENVIRONMENTS FROM DATASET
+// ============================================================================
+
+async function loadEnvironments() {
+
+  try {
+
+    const response =
+      await fetch(
+        CONFIG.dataUrl
+      );
+
+
+    if (!response.ok) {
+
+      throw new Error(
+        "Failed to load terrain data: " +
+        response.status
+      );
+
+    }
+
+
+    const dataset =
+      await response.json();
+
+
+    const environments =
+      mapDatasetEnvironments(
+        dataset
+      );
+
+
+    if (
+      environments &&
+      Object.keys(
+        environments
+      ).length > 0
+    ) {
+
+      dataSourceLabel =
+        "DATASET";
+
+      return environments;
+
+    }
+
+
+    throw new Error(
+      "Terrain dataset contains no environments"
+    );
+
+  }
+  catch (error) {
+
+    console.warn(
+
+      "Atlas Terrain: falling back to built-in environment data.",
+
+      error
+
+    );
+
+
+    return DEFAULT_ENVIRONMENTS;
+
+  }
+
+}
+
+
+// ============================================================================
+// MAP DATASET ENVIRONMENTS
+// ============================================================================
+
+function mapDatasetEnvironments(
+  dataset
+) {
+
+  const source =
+    dataset &&
+    dataset.environments;
+
+
+  if (!source) {
+    return null;
+  }
+
+
+  const mapped =
+    {};
+
+
+  Object.keys(
+    source
+  ).forEach(
+
+    (key, position) => {
+
+      const entry =
+        source[key];
+
+
+      const generation =
+        entry.generation || {};
+
+
+      const visual =
+        entry.visual || {};
+
+
+      const fallback =
+        DEFAULT_ENVIRONMENTS[
+          key
+        ] || {};
+
+
+      mapped[key] = {
+
+        title:
+          entry.name ||
+          fallback.title ||
+          key,
+
+        index:
+          String(
+            position + 1
+          ).padStart(
+            2,
+            "0"
+          ),
+
+        mode:
+          entry.mode_label ||
+          fallback.mode ||
+          key.toUpperCase(),
+
+        description:
+          entry.description ||
+          fallback.description ||
+          "",
+
+        height:
+          generation.height_scale ??
+          fallback.height ??
+          20,
+
+        frequency:
+          generation.frequency ??
+          fallback.frequency ??
+          0.04,
+
+        detailFrequency:
+          (generation.frequency ??
+            fallback.frequency ??
+            0.04) * 2.2,
+
+        microFrequency:
+          (generation.frequency ??
+            fallback.frequency ??
+            0.04) * 5,
+
+        detailStrength:
+          generation.roughness ??
+          fallback.detailStrength ??
+          0.2,
+
+        microStrength:
+          fallback.microStrength ??
+          0.08,
+
+        valleyStrength:
+          generation.valley_strength ??
+          fallback.valleyStrength ??
+          0.3,
+
+        ridgeStrength:
+          generation.ridge_strength ??
+          fallback.ridgeStrength ??
+          0.2,
+
+        maskStrength:
+          generation.radial_falloff ??
+          fallback.maskStrength ??
+          0.5,
+
+        exponent:
+          generation.peak_sharpness ??
+          fallback.exponent ??
+          1.4,
+
+        wireframe:
+          visual.wireframe ??
+          fallback.wireframe ??
+          CONFIG.terrain.wireframe,
+
+        colors:
+          (
+            Array.isArray(
+              visual.palette
+            ) &&
+            visual.palette.length > 0
+          )
+            ? visual.palette
+            : (
+              fallback.colors ||
+              DEFAULT_ENVIRONMENTS
+                .mountains.colors
+            )
+
+      };
+
+    }
+
+  );
+
+
+  return mapped;
+
+}
+
+
+// ============================================================================
+// DATA SOURCE INDICATOR
+// ============================================================================
+
+function updateDataSource() {
+
+  const element =
+    document.getElementById(
+      "data-source"
+    );
+
+
+  if (element) {
+
+    element.textContent =
+      dataSourceLabel;
+
+  }
+
+}
+
+
+// ============================================================================
+// BUILD ENVIRONMENT LIST UI
+// ============================================================================
+
+function buildEnvironmentList() {
+
+  const list =
+    document.querySelector(
+      ".environment-list"
+    );
+
+
+  if (!list) {
+    return;
+  }
+
+
+  list.textContent =
+    "";
+
+
+  Object.keys(
+    ENVIRONMENTS
+  ).forEach(
+
+    key => {
+
+      const environment =
+        ENVIRONMENTS[key];
+
+
+      const button =
+        document.createElement(
+          "button"
+        );
+
+
+      button.className =
+
+        "environment-option" +
+
+        (
+          key === currentEnvironment
+            ? " active"
+            : ""
+        );
+
+
+      button.type =
+        "button";
+
+
+      button.dataset.environment =
+        key;
+
+
+      const number =
+        document.createElement(
+          "span"
+        );
+
+
+      number.className =
+        "option-number";
+
+
+      number.textContent =
+        environment.index;
+
+
+      const content =
+        document.createElement(
+          "span"
+        );
+
+
+      content.className =
+        "option-content";
+
+
+      const title =
+        document.createElement(
+          "span"
+        );
+
+
+      title.className =
+        "option-title";
+
+
+      title.textContent =
+        environment.title;
+
+
+      const description =
+        document.createElement(
+          "span"
+        );
+
+
+      description.className =
+        "option-description";
+
+
+      description.textContent =
+        environment.description;
+
+
+      content.appendChild(
+        title
+      );
+
+
+      content.appendChild(
+        description
+      );
+
+
+      const arrow =
+        document.createElement(
+          "span"
+        );
+
+
+      arrow.className =
+        "option-arrow";
+
+
+      arrow.textContent =
+        "→";
+
+
+      button.appendChild(
+        number
+      );
+
+
+      button.appendChild(
+        content
+      );
+
+
+      button.appendChild(
+        arrow
+      );
+
+
+      list.appendChild(
+        button
+      );
+
+    }
+
+  );
 
 }
 
@@ -644,6 +1100,14 @@ function createControls() {
     Math.PI * 0.49;
 
 
+  controls.autoRotate =
+    autoRotate;
+
+
+  controls.autoRotateSpeed =
+    0.6;
+
+
   controls.target.set(
     0,
     6,
@@ -652,6 +1116,222 @@ function createControls() {
 
 
   controls.update();
+
+
+  // Pause auto-rotation while the user is interacting
+  // with the viewer, then resume shortly afterwards.
+
+  let resumeTimeout;
+
+
+  controls.addEventListener(
+    "start",
+    () => {
+
+      controls.autoRotate =
+        false;
+
+      clearTimeout(
+        resumeTimeout
+      );
+
+    }
+  );
+
+
+  controls.addEventListener(
+    "end",
+    () => {
+
+      clearTimeout(
+        resumeTimeout
+      );
+
+
+      resumeTimeout =
+        setTimeout(
+          () => {
+
+            controls.autoRotate =
+              autoRotate;
+
+          },
+          2500
+        );
+
+    }
+  );
+
+}
+
+
+// ============================================================================
+// VIEWER ACTIONS (RESET VIEW / WIREFRAME / AUTO-ROTATE)
+// ============================================================================
+
+function bindViewerActions() {
+
+  const resetButton =
+    document.getElementById(
+      "reset-view"
+    );
+
+
+  const wireframeButton =
+    document.getElementById(
+      "toggle-wireframe"
+    );
+
+
+  const rotateButton =
+    document.getElementById(
+      "toggle-rotate"
+    );
+
+
+  if (resetButton) {
+
+    resetButton.addEventListener(
+      "click",
+      () => {
+
+        camera.position.set(
+
+          CONFIG.camera.position.x,
+
+          CONFIG.camera.position.y,
+
+          CONFIG.camera.position.z
+
+        );
+
+
+        controls.target.set(
+          0,
+          6,
+          0
+        );
+
+
+        controls.update();
+
+      }
+    );
+
+  }
+
+
+  if (wireframeButton) {
+
+    updateToggleButton(
+      wireframeButton,
+      wireframe
+    );
+
+
+    wireframeButton.addEventListener(
+      "click",
+      () => {
+
+        wireframe =
+          !wireframe;
+
+
+        if (terrainMaterial) {
+
+          terrainMaterial.wireframe =
+            wireframe;
+
+          terrainMaterial.needsUpdate =
+            true;
+
+        }
+
+
+        updateToggleButton(
+          wireframeButton,
+          wireframe
+        );
+
+      }
+    );
+
+  }
+
+
+  if (rotateButton) {
+
+    updateToggleButton(
+      rotateButton,
+      autoRotate
+    );
+
+
+    rotateButton.addEventListener(
+      "click",
+      () => {
+
+        autoRotate =
+          !autoRotate;
+
+
+        controls.autoRotate =
+          autoRotate;
+
+
+        updateToggleButton(
+          rotateButton,
+          autoRotate
+        );
+
+      }
+    );
+
+  }
+
+}
+
+
+// ============================================================================
+// TOGGLE BUTTON STATE
+// ============================================================================
+
+function updateToggleButton(
+  button,
+  enabled
+) {
+
+  button.classList.toggle(
+    "active",
+    enabled
+  );
+
+
+  button.setAttribute(
+
+    "aria-pressed",
+
+    enabled
+      ? "true"
+      : "false"
+
+  );
+
+
+  const state =
+    button.querySelector(
+      ".action-state"
+    );
+
+
+  if (state) {
+
+    state.textContent =
+      enabled
+        ? "ON"
+        : "OFF";
+
+  }
 
 }
 
@@ -729,7 +1409,8 @@ function createTerrain(
 
   generateElevation(
     terrainGeometry,
-    environment
+    environment,
+    environmentName
   );
 
 
@@ -747,13 +1428,34 @@ function createTerrain(
   // Material
   // ------------------------------------------------------------
 
+  wireframe =
+    environment.wireframe ??
+    wireframe;
+
+
+  const wireframeButton =
+    document.getElementById(
+      "toggle-wireframe"
+    );
+
+
+  if (wireframeButton) {
+
+    updateToggleButton(
+      wireframeButton,
+      wireframe
+    );
+
+  }
+
+
   terrainMaterial =
     new THREE.MeshStandardMaterial({
 
       vertexColors: true,
 
       wireframe:
-        CONFIG.terrain.wireframe,
+        wireframe,
 
       roughness: 1,
 
@@ -833,7 +1535,8 @@ function createTerrain(
 
 function generateElevation(
   geometry,
-  environment
+  environment,
+  environmentName
 ) {
 
   const position =
@@ -1058,7 +1761,7 @@ function generateElevation(
     // ----------------------------------------------------------
 
     switch (
-      currentEnvironment
+      environmentName
     ) {
 
       case "mountains":
@@ -1693,6 +2396,59 @@ function showLoading() {
 
     loading.style.pointerEvents =
       "auto";
+
+  }
+
+}
+
+
+// ============================================================================
+// ERROR STATE
+// ============================================================================
+
+function showError(
+  message
+) {
+
+  const loading =
+    document.getElementById(
+      "loading"
+    );
+
+
+  if (loading) {
+
+    const label =
+      loading.querySelector(
+        "span"
+      );
+
+
+    if (label) {
+
+      label.textContent =
+        message;
+
+    }
+
+
+    loading.classList.add(
+      "error"
+    );
+
+  }
+
+
+  const status =
+    document.getElementById(
+      "renderer-status"
+    );
+
+
+  if (status) {
+
+    status.textContent =
+      "RENDERER UNAVAILABLE";
 
   }
 
