@@ -1,0 +1,1651 @@
+{
+  "schema_version": "1.0.0",
+  "dataset": {
+    "id": "atlas-terrain",
+    "name": "Atlas Terrain Dataset",
+    "description": "Procedural terrain environments and real-world mountain systems for the Atlas terrain renderer.",
+    "unit_system": "metric",
+    "coordinate_system": "WGS84",
+    "elevation_unit": "meters",
+    "length_unit": "kilometers"
+  },
+
+  "environments": {
+    "mountains": {
+      "id": "mountains",
+      "name": "Mountain Range",
+      "short_name": "Mountains",
+      "mode_label": "MOUNTAIN RANGE",
+      "category": "mountain",
+      "description": "High-relief mountainous terrain with ridges, peaks, valleys and steep elevation changes.",
+      "generation": {
+        "base_height": 4,
+        "height_scale": 32,
+        "frequency": 0.055,
+        "octaves": 5,
+        "ridge_strength": 0.82,
+        "erosion_strength": 0.2,
+        "valley_strength": 0.45,
+        "peak_sharpness": 1.8,
+        "roughness": 0.72,
+        "radial_falloff": 0.82,
+        "sea_level": 0
+      },
+      "visual": {
+        "wireframe": true,
+        "fog_density": 0.004,
+        "palette": [
+          "#17201c",
+          "#28342e",
+          "#465149",
+          "#737d76",
+          "#b8beb9",
+          "#e2e5e2"
+        ]
+      }
+    },
+
+    "valley": {
+      "id": "valley",
+      "name": "Valley",
+      "short_name": "Valley",
+      "mode_label": "LOWLAND VALLEY",
+      "category": "valley",
+      "description": "Lower elevation terrain organized around broad valleys and surrounding hills.",
+      "generation": {
+        "base_height": 1,
+        "height_scale": 17,
+        "frequency": 0.04,
+        "octaves": 4,
+        "ridge_strength": 0.28,
+        "erosion_strength": 0.38,
+        "valley_strength": 0.9,
+        "peak_sharpness": 0.7,
+        "roughness": 0.42,
+        "radial_falloff": 0.65,
+        "sea_level": 0
+      },
+      "visual": {
+        "wireframe": true,
+        "fog_density": 0.003,
+        "palette": [
+          "#17221d",
+          "#304238",
+          "#526355",
+          "#768676",
+          "#9ba79b",
+          "#c8cec9"
+        ]
+      }
+    },
+
+    "desert": {
+      "id": "desert",
+      "name": "Desert",
+      "short_name": "Desert",
+      "mode_label": "ARID TERRAIN",
+      "category": "desert",
+      "description": "Dry terrain dominated by broad relief, dunes, mesas and sparse erosion.",
+      "generation": {
+        "base_height": 1,
+        "height_scale": 13,
+        "frequency": 0.035,
+        "octaves": 3,
+        "ridge_strength": 0.22,
+        "erosion_strength": 0.12,
+        "valley_strength": 0.18,
+        "peak_sharpness": 0.6,
+        "roughness": 0.34,
+        "dune_strength": 0.72,
+        "dune_frequency": 0.09,
+        "radial_falloff": 0.42,
+        "sea_level": 0
+      },
+      "visual": {
+        "wireframe": true,
+        "fog_density": 0.0025,
+        "palette": [
+          "#29241d",
+          "#51483a",
+          "#756650",
+          "#98876c",
+          "#c0ad8d",
+          "#ddd0b6"
+        ]
+      }
+    },
+
+    "plateau": {
+      "id": "plateau",
+      "name": "Plateau",
+      "short_name": "Plateau",
+      "mode_label": "ELEVATED FLATLAND",
+      "category": "plateau",
+      "description": "Elevated terrain characterized by broad relatively flat surfaces and steep margins.",
+      "generation": {
+        "base_height": 5,
+        "height_scale": 23,
+        "frequency": 0.032,
+        "octaves": 4,
+        "ridge_strength": 0.35,
+        "erosion_strength": 0.3,
+        "valley_strength": 0.25,
+        "peak_sharpness": 0.55,
+        "roughness": 0.38,
+        "plateau_strength": 0.88,
+        "plateau_level": 0.62,
+        "radial_falloff": 0.55,
+        "sea_level": 0
+      },
+      "visual": {
+        "wireframe": true,
+        "fog_density": 0.003,
+        "palette": [
+          "#202721",
+          "#374337",
+          "#566354",
+          "#747f6e",
+          "#9ca58f",
+          "#c8ccb9"
+        ]
+      }
+    },
+
+    "coastal": {
+      "id": "coastal",
+      "name": "Coastal",
+      "short_name": "Coastal",
+      "mode_label": "COASTAL TERRAIN",
+      "category": "coastal",
+      "description": "Terrain transitioning between land and sea with coastal plains, cliffs and low relief.",
+      "generation": {
+        "base_height": -2,
+        "height_scale": 14,
+        "frequency": 0.035,
+        "octaves": 4,
+        "ridge_strength": 0.18,
+        "erosion_strength": 0.28,
+        "valley_strength": 0.2,
+        "peak_sharpness": 0.55,
+        "roughness": 0.38,
+        "coastline_strength": 0.88,
+        "sea_level": 0,
+        "shore_width": 0.18
+      },
+      "visual": {
+        "wireframe": true,
+        "fog_density": 0.0035,
+        "palette": [
+          "#101b1d",
+          "#263b39",
+          "#3f5952",
+          "#68766b",
+          "#9ca393",
+          "#d1d3c5"
+        ]
+      }
+    },
+
+    "volcanic": {
+      "id": "volcanic",
+      "name": "Volcanic",
+      "short_name": "Volcanic",
+      "mode_label": "VOLCANIC LANDSCAPE",
+      "category": "volcanic",
+      "description": "Volcanic terrain featuring cones, calderas, lava-like ridges and fractured relief.",
+      "generation": {
+        "base_height": 0,
+        "height_scale": 31,
+        "frequency": 0.045,
+        "octaves": 5,
+        "ridge_strength": 0.55,
+        "erosion_strength": 0.15,
+        "valley_strength": 0.22,
+        "peak_sharpness": 1.6,
+        "roughness": 0.62,
+        "volcano_strength": 0.92,
+        "caldera_strength": 0.5,
+        "lava_strength": 0.32,
+        "sea_level": 0
+      },
+      "visual": {
+        "wireframe": true,
+        "fog_density": 0.004,
+        "palette": [
+          "#111313",
+          "#292b29",
+          "#444642",
+          "#62645e",
+          "#898b81",
+          "#b9bab0"
+        ]
+      }
+    }
+  },
+
+  "mountain_ranges": [
+    {
+      "id": "andes",
+      "name": "Andes",
+      "native_names": [],
+      "continent": ["South America"],
+      "countries": [
+        "Argentina",
+        "Bolivia",
+        "Chile",
+        "Colombia",
+        "Ecuador",
+        "Peru",
+        "Venezuela"
+      ],
+      "region": "Western South America",
+      "type": "continental_orogenic_belt",
+      "geological_setting": "subduction",
+      "tectonic_context": "Nazca Plate and Antarctic Plate subduction beneath the South American Plate",
+      "length_km": 7000,
+      "highest_peak": {
+        "name": "Aconcagua",
+        "elevation_m": 6961,
+        "latitude": -32.6532,
+        "longitude": -70.0109,
+        "country": "Argentina"
+      },
+      "approximate_extent": {
+        "north": 12.5,
+        "south": -55.0,
+        "west": -81.0,
+        "east": -64.0
+      },
+      "terrain_profile": {
+        "environment": "mountains",
+        "height_scale": 1.0,
+        "ridge_strength": 0.92,
+        "roughness": 0.78,
+        "valley_strength": 0.48,
+        "peak_sharpness": 1.8
+      },
+      "tags": [
+        "longest",
+        "high_altitude",
+        "subduction",
+        "volcanic",
+        "cordillera"
+      ]
+    },
+
+    {
+      "id": "himalayas",
+      "name": "Himalayas",
+      "native_names": ["Himālaya"],
+      "continent": ["Asia"],
+      "countries": [
+        "Bhutan",
+        "China",
+        "India",
+        "Nepal",
+        "Pakistan"
+      ],
+      "region": "South-Central Asia",
+      "type": "continental_collision_belt",
+      "geological_setting": "continental_collision",
+      "tectonic_context": "Indian Plate collision with the Eurasian Plate",
+      "length_km": 2500,
+      "highest_peak": {
+        "name": "Mount Everest",
+        "elevation_m": 8848.86,
+        "latitude": 27.9881,
+        "longitude": 86.925,
+        "country": "Nepal / China"
+      },
+      "approximate_extent": {
+        "north": 35.5,
+        "south": 26.0,
+        "west": 73.0,
+        "east": 95.0
+      },
+      "terrain_profile": {
+        "environment": "mountains",
+        "height_scale": 1.18,
+        "ridge_strength": 1.0,
+        "roughness": 0.88,
+        "valley_strength": 0.52,
+        "peak_sharpness": 2.0
+      },
+      "tags": [
+        "highest",
+        "continental_collision",
+        "glaciated",
+        "high_altitude"
+      ]
+    },
+
+    {
+      "id": "karakoram",
+      "name": "Karakoram",
+      "native_names": [],
+      "continent": ["Asia"],
+      "countries": [
+        "China",
+        "India",
+        "Pakistan"
+      ],
+      "region": "Central and South Asia",
+      "type": "high_mountain_system",
+      "geological_setting": "continental_collision",
+      "tectonic_context": "Indian-Eurasian collision zone",
+      "length_km": 500,
+      "highest_peak": {
+        "name": "K2",
+        "elevation_m": 8611,
+        "latitude": 35.8808,
+        "longitude": 76.5158,
+        "country": "Pakistan / China"
+      },
+      "approximate_extent": {
+        "north": 37.5,
+        "south": 34.0,
+        "west": 73.0,
+        "east": 79.0
+      },
+      "terrain_profile": {
+        "environment": "mountains",
+        "height_scale": 1.2,
+        "ridge_strength": 1.0,
+        "roughness": 0.92,
+        "valley_strength": 0.62,
+        "peak_sharpness": 2.15
+      },
+      "tags": [
+        "high_altitude",
+        "glaciated",
+        "continental_collision"
+      ]
+    },
+
+    {
+      "id": "hindu_kush",
+      "name": "Hindu Kush",
+      "native_names": [],
+      "continent": ["Asia"],
+      "countries": [
+        "Afghanistan",
+        "Pakistan",
+        "Tajikistan"
+      ],
+      "region": "Central Asia",
+      "type": "high_mountain_system",
+      "geological_setting": "continental_collision",
+      "length_km": 950,
+      "highest_peak": {
+        "name": "Tirich Mir",
+        "elevation_m": 7708,
+        "latitude": 36.255,
+        "longitude": 71.837,
+        "country": "Pakistan"
+      },
+      "approximate_extent": {
+        "north": 38.5,
+        "south": 34.0,
+        "west": 66.0,
+        "east": 75.0
+      },
+      "terrain_profile": {
+        "environment": "mountains",
+        "height_scale": 1.05,
+        "ridge_strength": 0.91,
+        "roughness": 0.84,
+        "valley_strength": 0.58,
+        "peak_sharpness": 1.9
+      },
+      "tags": [
+        "high_altitude",
+        "continental_collision",
+        "central_asia"
+      ]
+    },
+
+    {
+      "id": "pamir",
+      "name": "Pamir Mountains",
+      "native_names": [],
+      "continent": ["Asia"],
+      "countries": [
+        "Afghanistan",
+        "China",
+        "Kyrgyzstan",
+        "Pakistan",
+        "Tajikistan"
+      ],
+      "region": "Central Asia",
+      "type": "high_mountain_system",
+      "geological_setting": "continental_collision",
+      "length_km": 500,
+      "highest_peak": {
+        "name": "Kongur Tagh",
+        "elevation_m": 7649,
+        "latitude": 38.593,
+        "longitude": 75.314,
+        "country": "China"
+      },
+      "approximate_extent": {
+        "north": 40.5,
+        "south": 36.0,
+        "west": 70.0,
+        "east": 77.0
+      },
+      "terrain_profile": {
+        "environment": "mountains",
+        "height_scale": 1.08,
+        "ridge_strength": 0.9,
+        "roughness": 0.81,
+        "valley_strength": 0.5,
+        "peak_sharpness": 1.85
+      },
+      "tags": [
+        "high_altitude",
+        "central_asia",
+        "glaciated"
+      ]
+    },
+
+    {
+      "id": "kunlun",
+      "name": "Kunlun Mountains",
+      "native_names": ["Kunlun Shan"],
+      "continent": ["Asia"],
+      "countries": [
+        "China"
+      ],
+      "region": "Tibetan Plateau",
+      "type": "continental_mountain_system",
+      "geological_setting": "continental_collision",
+      "length_km": 3000,
+      "highest_peak": {
+        "name": "Liushi Shan",
+        "elevation_m": 7167,
+        "latitude": 35.5,
+        "longitude": 80.0,
+        "country": "China"
+      },
+      "approximate_extent": {
+        "north": 39.0,
+        "south": 32.0,
+        "west": 75.0,
+        "east": 99.0
+      },
+      "terrain_profile": {
+        "environment": "mountains",
+        "height_scale": 0.98,
+        "ridge_strength": 0.82,
+        "roughness": 0.72,
+        "valley_strength": 0.38,
+        "peak_sharpness": 1.5
+      },
+      "tags": [
+        "tibetan_plateau",
+        "high_altitude",
+        "central_asia"
+      ]
+    },
+
+    {
+      "id": "tian_shan",
+      "name": "Tian Shan",
+      "native_names": ["Tianshan"],
+      "continent": ["Asia"],
+      "countries": [
+        "China",
+        "Kazakhstan",
+        "Kyrgyzstan",
+        "Uzbekistan"
+      ],
+      "region": "Central Asia",
+      "type": "intracontinental_mountain_system",
+      "geological_setting": "continental_compression",
+      "length_km": 2900,
+      "highest_peak": {
+        "name": "Jengish Chokusu",
+        "elevation_m": 7439,
+        "latitude": 42.034,
+        "longitude": 80.132,
+        "country": "Kyrgyzstan / China"
+      },
+      "approximate_extent": {
+        "north": 45.5,
+        "south": 39.0,
+        "west": 67.0,
+        "east": 95.0
+      },
+      "terrain_profile": {
+        "environment": "mountains",
+        "height_scale": 0.95,
+        "ridge_strength": 0.86,
+        "roughness": 0.76,
+        "valley_strength": 0.5,
+        "peak_sharpness": 1.75
+      },
+      "tags": [
+        "central_asia",
+        "glaciated",
+        "high_altitude"
+      ]
+    },
+
+    {
+      "id": "rocky_mountains",
+      "name": "Rocky Mountains",
+      "native_names": [],
+      "continent": ["North America"],
+      "countries": [
+        "Canada",
+        "United States"
+      ],
+      "region": "Western North America",
+      "type": "continental_mountain_system",
+      "geological_setting": "subduction_and_uplift",
+      "length_km": 4800,
+      "highest_peak": {
+        "name": "Mount Elbert",
+        "elevation_m": 4401,
+        "latitude": 39.1178,
+        "longitude": -106.4454,
+        "country": "United States"
+      },
+      "approximate_extent": {
+        "north": 60.0,
+        "south": 31.0,
+        "west": -120.0,
+        "east": -102.0
+      },
+      "terrain_profile": {
+        "environment": "mountains",
+        "height_scale": 0.75,
+        "ridge_strength": 0.78,
+        "roughness": 0.68,
+        "valley_strength": 0.58,
+        "peak_sharpness": 1.5
+      },
+      "tags": [
+        "cordillera",
+        "glaciated",
+        "north_america"
+      ]
+    },
+
+    {
+      "id": "alaska_range",
+      "name": "Alaska Range",
+      "native_names": [],
+      "continent": ["North America"],
+      "countries": [
+        "United States"
+      ],
+      "region": "Alaska",
+      "type": "continental_mountain_range",
+      "geological_setting": "subduction",
+      "highest_peak": {
+        "name": "Denali",
+        "elevation_m": 6190.5,
+        "latitude": 63.0695,
+        "longitude": -151.0074,
+        "country": "United States"
+      },
+      "approximate_extent": {
+        "north": 64.5,
+        "south": 61.0,
+        "west": -153.5,
+        "east": -143.0
+      },
+      "terrain_profile": {
+        "environment": "mountains",
+        "height_scale": 1.05,
+        "ridge_strength": 0.9,
+        "roughness": 0.85,
+        "valley_strength": 0.6,
+        "peak_sharpness": 1.9
+      },
+      "tags": [
+        "high_altitude",
+        "glaciated",
+        "north_america"
+      ]
+    },
+
+    {
+      "id": "appalachians",
+      "name": "Appalachian Mountains",
+      "native_names": [],
+      "continent": ["North America"],
+      "countries": [
+        "Canada",
+        "United States"
+      ],
+      "region": "Eastern North America",
+      "type": "ancient_fold_mountain_system",
+      "geological_setting": "ancient_collision",
+      "length_km": 2400,
+      "highest_peak": {
+        "name": "Mount Mitchell",
+        "elevation_m": 2037,
+        "latitude": 35.765,
+        "longitude": -82.265,
+        "country": "United States"
+      },
+      "approximate_extent": {
+        "north": 54.0,
+        "south": 32.0,
+        "west": -86.0,
+        "east": -60.0
+      },
+      "terrain_profile": {
+        "environment": "mountains",
+        "height_scale": 0.46,
+        "ridge_strength": 0.6,
+        "roughness": 0.46,
+        "valley_strength": 0.76,
+        "peak_sharpness": 0.75
+      },
+      "tags": [
+        "ancient",
+        "eroded",
+        "forested",
+        "north_america"
+      ]
+    },
+
+    {
+      "id": "cascade_range",
+      "name": "Cascade Range",
+      "native_names": [],
+      "continent": ["North America"],
+      "countries": [
+        "Canada",
+        "United States"
+      ],
+      "region": "Pacific Northwest",
+      "type": "volcanic_mountain_range",
+      "geological_setting": "subduction",
+      "highest_peak": {
+        "name": "Mount Rainier",
+        "elevation_m": 4392,
+        "latitude": 46.8523,
+        "longitude": -121.7603,
+        "country": "United States"
+      },
+      "approximate_extent": {
+        "north": 52.0,
+        "south": 34.0,
+        "west": -123.5,
+        "east": -116.0
+      },
+      "terrain_profile": {
+        "environment": "volcanic",
+        "height_scale": 0.86,
+        "ridge_strength": 0.68,
+        "roughness": 0.65,
+        "valley_strength": 0.5,
+        "peak_sharpness": 1.9
+      },
+      "tags": [
+        "volcanic",
+        "subduction",
+        "north_america"
+      ]
+    },
+
+    {
+      "id": "sierra_nevada",
+      "name": "Sierra Nevada",
+      "native_names": [],
+      "continent": ["North America"],
+      "countries": [
+        "United States"
+      ],
+      "region": "California and Nevada",
+      "type": "mountain_range",
+      "geological_setting": "uplift_and_granite_intrusion",
+      "highest_peak": {
+        "name": "Mount Whitney",
+        "elevation_m": 4421,
+        "latitude": 36.5785,
+        "longitude": -118.292,
+        "country": "United States"
+      },
+      "approximate_extent": {
+        "north": 39.5,
+        "south": 35.0,
+        "west": -120.5,
+        "east": -117.5
+      },
+      "terrain_profile": {
+        "environment": "mountains",
+        "height_scale": 0.78,
+        "ridge_strength": 0.7,
+        "roughness": 0.62,
+        "valley_strength": 0.56,
+        "peak_sharpness": 1.45
+      },
+      "tags": [
+        "granite",
+        "glaciated",
+        "north_america"
+      ]
+    },
+
+    {
+      "id": "alps",
+      "name": "Alps",
+      "native_names": [],
+      "continent": ["Europe"],
+      "countries": [
+        "Austria",
+        "France",
+        "Germany",
+        "Italy",
+        "Liechtenstein",
+        "Monaco",
+        "Slovenia",
+        "Switzerland"
+      ],
+      "region": "Central Europe",
+      "type": "continental_collision_mountain_system",
+      "geological_setting": "continental_collision",
+      "length_km": 1200,
+      "highest_peak": {
+        "name": "Mont Blanc",
+        "elevation_m": 4808.7,
+        "latitude": 45.8326,
+        "longitude": 6.8652,
+        "country": "France / Italy"
+      },
+      "approximate_extent": {
+        "north": 48.0,
+        "south": 44.0,
+        "west": 5.5,
+        "east": 17.5
+      },
+      "terrain_profile": {
+        "environment": "mountains",
+        "height_scale": 0.86,
+        "ridge_strength": 0.84,
+        "roughness": 0.7,
+        "valley_strength": 0.68,
+        "peak_sharpness": 1.7
+      },
+      "tags": [
+        "europe",
+        "glaciated",
+        "continental_collision"
+      ]
+    },
+
+    {
+      "id": "caucasus",
+      "name": "Caucasus Mountains",
+      "native_names": [],
+      "continent": ["Europe", "Asia"],
+      "countries": [
+        "Armenia",
+        "Azerbaijan",
+        "Georgia",
+        "Russia"
+      ],
+      "region": "Between Black Sea and Caspian Sea",
+      "type": "continental_collision_mountain_system",
+      "geological_setting": "continental_collision",
+      "length_km": 1200,
+      "highest_peak": {
+        "name": "Mount Elbrus",
+        "elevation_m": 5642,
+        "latitude": 43.355,
+        "longitude": 42.437,
+        "country": "Russia"
+      },
+      "approximate_extent": {
+        "north": 45.5,
+        "south": 40.0,
+        "west": 37.0,
+        "east": 50.0
+      },
+      "terrain_profile": {
+        "environment": "mountains",
+        "height_scale": 0.95,
+        "ridge_strength": 0.82,
+        "roughness": 0.78,
+        "valley_strength": 0.56,
+        "peak_sharpness": 1.8
+      },
+      "tags": [
+        "europe",
+        "asia",
+        "high_altitude",
+        "volcanic"
+      ]
+    },
+
+    {
+      "id": "carpathians",
+      "name": "Carpathian Mountains",
+      "native_names": [],
+      "continent": ["Europe"],
+      "countries": [
+        "Austria",
+        "Czechia",
+        "Hungary",
+        "Poland",
+        "Romania",
+        "Serbia",
+        "Slovakia",
+        "Ukraine"
+      ],
+      "region": "Central and Eastern Europe",
+      "type": "fold_mountain_system",
+      "geological_setting": "continental_collision",
+      "length_km": 1500,
+      "highest_peak": {
+        "name": "Gerlachovský štít",
+        "elevation_m": 2655,
+        "latitude": 49.164,
+        "longitude": 20.133,
+        "country": "Slovakia"
+      },
+      "approximate_extent": {
+        "north": 50.5,
+        "south": 44.0,
+        "west": 14.0,
+        "east": 27.0
+      },
+      "terrain_profile": {
+        "environment": "mountains",
+        "height_scale": 0.56,
+        "ridge_strength": 0.64,
+        "roughness": 0.48,
+        "valley_strength": 0.68,
+        "peak_sharpness": 1.0
+      },
+      "tags": [
+        "europe",
+        "forested",
+        "continental_collision"
+      ]
+    },
+
+    {
+      "id": "pyrenees",
+      "name": "Pyrenees",
+      "native_names": ["Pirineus", "Pyrénées", "Pireneoak"],
+      "continent": ["Europe"],
+      "countries": [
+        "Andorra",
+        "France",
+        "Spain"
+      ],
+      "region": "Iberian Peninsula",
+      "type": "fold_mountain_system",
+      "geological_setting": "continental_collision",
+      "length_km": 490,
+      "highest_peak": {
+        "name": "Aneto",
+        "elevation_m": 3404,
+        "latitude": 42.632,
+        "longitude": 0.656,
+        "country": "Spain"
+      },
+      "approximate_extent": {
+        "north": 43.5,
+        "south": 42.2,
+        "west": -1.8,
+        "east": 3.2
+      },
+      "terrain_profile": {
+        "environment": "mountains",
+        "height_scale": 0.64,
+        "ridge_strength": 0.72,
+        "roughness": 0.56,
+        "valley_strength": 0.65,
+        "peak_sharpness": 1.25
+      },
+      "tags": [
+        "europe",
+        "france",
+        "spain",
+        "andorra"
+      ]
+    },
+
+    {
+      "id": "urals",
+      "name": "Ural Mountains",
+      "native_names": ["Уральские горы"],
+      "continent": ["Europe", "Asia"],
+      "countries": [
+        "Russia",
+        "Kazakhstan"
+      ],
+      "region": "Western Russia",
+      "type": "ancient_fold_mountain_system",
+      "geological_setting": "ancient_collision",
+      "length_km": 2500,
+      "highest_peak": {
+        "name": "Mount Narodnaya",
+        "elevation_m": 1895,
+        "latitude": 65.035,
+        "longitude": 59.254,
+        "country": "Russia"
+      },
+      "approximate_extent": {
+        "north": 69.0,
+        "south": 51.0,
+        "west": 55.0,
+        "east": 67.0
+      },
+      "terrain_profile": {
+        "environment": "mountains",
+        "height_scale": 0.38,
+        "ridge_strength": 0.45,
+        "roughness": 0.3,
+        "valley_strength": 0.52,
+        "peak_sharpness": 0.55
+      },
+      "tags": [
+        "ancient",
+        "eroded",
+        "europe_asia_boundary"
+      ]
+    },
+
+    {
+      "id": "atlas",
+      "name": "Atlas Mountains",
+      "native_names": [],
+      "continent": ["Africa"],
+      "countries": [
+        "Algeria",
+        "Morocco",
+        "Tunisia"
+      ],
+      "region": "North Africa",
+      "type": "fold_mountain_system",
+      "geological_setting": "continental_collision",
+      "length_km": 2500,
+      "highest_peak": {
+        "name": "Jebel Toubkal",
+        "elevation_m": 4167,
+        "latitude": 31.059,
+        "longitude": -7.918,
+        "country": "Morocco"
+      },
+      "approximate_extent": {
+        "north": 37.5,
+        "south": 28.0,
+        "west": -10.5,
+        "east": 9.0
+      },
+      "terrain_profile": {
+        "environment": "mountains",
+        "height_scale": 0.72,
+        "ridge_strength": 0.7,
+        "roughness": 0.6,
+        "valley_strength": 0.48,
+        "peak_sharpness": 1.35
+      },
+      "tags": [
+        "north_africa",
+        "desert_adjacent",
+        "continental_collision"
+      ]
+    },
+
+    {
+      "id": "drakensberg",
+      "name": "Drakensberg",
+      "native_names": ["uKhahlamba"],
+      "continent": ["Africa"],
+      "countries": [
+        "Lesotho",
+        "South Africa"
+      ],
+      "region": "Southern Africa",
+      "type": "escarpment_mountain_system",
+      "geological_setting": "uplift_and_erosion",
+      "length_km": 1125,
+      "highest_peak": {
+        "name": "Thabana Ntlenyana",
+        "elevation_m": 3482,
+        "latitude": -29.466,
+        "longitude": 29.368,
+        "country": "Lesotho"
+      },
+      "approximate_extent": {
+        "north": -25.0,
+        "south": -31.5,
+        "west": 26.0,
+        "east": 31.5
+      },
+      "terrain_profile": {
+        "environment": "plateau",
+        "height_scale": 0.62,
+        "ridge_strength": 0.64,
+        "roughness": 0.55,
+        "valley_strength": 0.58,
+        "peak_sharpness": 0.95
+      },
+      "tags": [
+        "africa",
+        "escarpment",
+        "plateau"
+      ]
+    },
+
+    {
+      "id": "ethiopian_highlands",
+      "name": "Ethiopian Highlands",
+      "native_names": [],
+      "continent": ["Africa"],
+      "countries": [
+        "Ethiopia",
+        "Eritrea"
+      ],
+      "region": "Horn of Africa",
+      "type": "highland_plateau",
+      "geological_setting": "volcanic_uplift",
+      "highest_peak": {
+        "name": "Ras Dashen",
+        "elevation_m": 4550,
+        "latitude": 13.236,
+        "longitude": 38.37,
+        "country": "Ethiopia"
+      },
+      "approximate_extent": {
+        "north": 15.5,
+        "south": 7.0,
+        "west": 33.0,
+        "east": 43.0
+      },
+      "terrain_profile": {
+        "environment": "plateau",
+        "height_scale": 0.7,
+        "ridge_strength": 0.52,
+        "roughness": 0.5,
+        "valley_strength": 0.7,
+        "peak_sharpness": 0.85
+      },
+      "tags": [
+        "africa",
+        "plateau",
+        "volcanic"
+      ]
+    },
+
+    {
+      "id": "rwenzori",
+      "name": "Rwenzori Mountains",
+      "native_names": [],
+      "continent": ["Africa"],
+      "countries": [
+        "Democratic Republic of the Congo",
+        "Uganda"
+      ],
+      "region": "Albertine Rift",
+      "type": "fault_block_mountains",
+      "geological_setting": "rift_uplift",
+      "highest_peak": {
+        "name": "Mount Stanley",
+        "elevation_m": 5109,
+        "latitude": 0.383,
+        "longitude": 29.871,
+        "country": "Uganda / Democratic Republic of the Congo"
+      },
+      "approximate_extent": {
+        "north": 0.6,
+        "south": -0.6,
+        "west": 29.5,
+        "east": 30.2
+      },
+      "terrain_profile": {
+        "environment": "mountains",
+        "height_scale": 0.82,
+        "ridge_strength": 0.72,
+        "roughness": 0.68,
+        "valley_strength": 0.55,
+        "peak_sharpness": 1.45
+      },
+      "tags": [
+        "africa",
+        "rift",
+        "glaciated",
+        "equatorial"
+      ]
+    },
+
+    {
+      "id": "great_dividing_range",
+      "name": "Great Dividing Range",
+      "native_names": [],
+      "continent": ["Australia"],
+      "countries": [
+        "Australia"
+      ],
+      "region": "Eastern Australia",
+      "type": "highland_system",
+      "geological_setting": "uplift_and_erosion",
+      "length_km": 3500,
+      "highest_peak": {
+        "name": "Mount Kosciuszko",
+        "elevation_m": 2228,
+        "latitude": -36.4559,
+        "longitude": 148.2632,
+        "country": "Australia"
+      },
+      "approximate_extent": {
+        "north": -16.0,
+        "south": -37.0,
+        "west": 145.0,
+        "east": 153.5
+      },
+      "terrain_profile": {
+        "environment": "plateau",
+        "height_scale": 0.45,
+        "ridge_strength": 0.5,
+        "roughness": 0.4,
+        "valley_strength": 0.55,
+        "peak_sharpness": 0.65
+      },
+      "tags": [
+        "australia",
+        "highland",
+        "watershed"
+      ]
+    },
+
+    {
+      "id": "southern_alps",
+      "name": "Southern Alps",
+      "native_names": ["Kā Tiritiri o te Moana"],
+      "continent": ["Oceania"],
+      "countries": [
+        "New Zealand"
+      ],
+      "region": "South Island",
+      "type": "active_fault_mountain_system",
+      "geological_setting": "transform_fault",
+      "highest_peak": {
+        "name": "Aoraki / Mount Cook",
+        "elevation_m": 3724,
+        "latitude": -43.595,
+        "longitude": 170.141,
+        "country": "New Zealand"
+      },
+      "approximate_extent": {
+        "north": -41.0,
+        "south": -46.0,
+        "west": 167.0,
+        "east": 172.5
+      },
+      "terrain_profile": {
+        "environment": "mountains",
+        "height_scale": 0.72,
+        "ridge_strength": 0.82,
+        "roughness": 0.72,
+        "valley_strength": 0.62,
+        "peak_sharpness": 1.6
+      },
+      "tags": [
+        "new_zealand",
+        "active_fault",
+        "glaciated"
+      ]
+    },
+
+    {
+      "id": "transantarctic",
+      "name": "Transantarctic Mountains",
+      "native_names": [],
+      "continent": ["Antarctica"],
+      "countries": [],
+      "region": "Antarctica",
+      "type": "fault_block_mountain_system",
+      "geological_setting": "rift_and_uplift",
+      "length_km": 3500,
+      "highest_peak": {
+        "name": "Mount Kirkpatrick",
+        "elevation_m": 4528,
+        "latitude": -84.35,
+        "longitude": 165.25,
+        "country": "Antarctica"
+      },
+      "approximate_extent": {
+        "north": -71.0,
+        "south": -85.0,
+        "west": 160.0,
+        "east": -160.0
+      },
+      "terrain_profile": {
+        "environment": "mountains",
+        "height_scale": 0.9,
+        "ridge_strength": 0.72,
+        "roughness": 0.7,
+        "valley_strength": 0.4,
+        "peak_sharpness": 1.5
+      },
+      "tags": [
+        "antarctica",
+        "polar",
+        "glaciated"
+      ]
+    },
+
+    {
+      "id": "zagros",
+      "name": "Zagros Mountains",
+      "native_names": ["Zagros"],
+      "continent": ["Asia"],
+      "countries": [
+        "Iran",
+        "Iraq",
+        "Turkey"
+      ],
+      "region": "Western Iran and Northern Iraq",
+      "type": "fold_mountain_system",
+      "geological_setting": "continental_collision",
+      "length_km": 1600,
+      "highest_peak": {
+        "name": "Dena",
+        "elevation_m": 4409,
+        "latitude": 30.95,
+        "longitude": 51.43,
+        "country": "Iran"
+      },
+      "approximate_extent": {
+        "north": 38.5,
+        "south": 28.0,
+        "west": 43.0,
+        "east": 56.0
+      },
+      "terrain_profile": {
+        "environment": "mountains",
+        "height_scale": 0.72,
+        "ridge_strength": 0.78,
+        "roughness": 0.62,
+        "valley_strength": 0.54,
+        "peak_sharpness": 1.2
+      },
+      "tags": [
+        "middle_east",
+        "fold_mountains",
+        "continental_collision"
+      ]
+    },
+
+    {
+      "id": "alborz",
+      "name": "Alborz Mountains",
+      "native_names": ["Alborz", "Elburz"],
+      "continent": ["Asia"],
+      "countries": [
+        "Iran"
+      ],
+      "region": "Northern Iran",
+      "type": "fold_mountain_system",
+      "geological_setting": "continental_collision",
+      "highest_peak": {
+        "name": "Mount Damavand",
+        "elevation_m": 5610,
+        "latitude": 35.956,
+        "longitude": 52.109,
+        "country": "Iran"
+      },
+      "approximate_extent": {
+        "north": 37.0,
+        "south": 35.0,
+        "west": 48.0,
+        "east": 59.0
+      },
+      "terrain_profile": {
+        "environment": "volcanic",
+        "height_scale": 0.92,
+        "ridge_strength": 0.7,
+        "roughness": 0.65,
+        "valley_strength": 0.48,
+        "peak_sharpness": 1.8
+      },
+      "tags": [
+        "middle_east",
+        "volcanic",
+        "high_altitude"
+      ]
+    },
+
+    {
+      "id": "altai",
+      "name": "Altai Mountains",
+      "native_names": ["Altay"],
+      "continent": ["Asia"],
+      "countries": [
+        "China",
+        "Kazakhstan",
+        "Mongolia",
+        "Russia"
+      ],
+      "region": "Central Asia",
+      "type": "intracontinental_mountain_system",
+      "geological_setting": "continental_collision",
+      "length_km": 2000,
+      "highest_peak": {
+        "name": "Belukha Mountain",
+        "elevation_m": 4506,
+        "latitude": 49.806,
+        "longitude": 86.588,
+        "country": "Russia"
+      },
+      "approximate_extent": {
+        "north": 53.5,
+        "south": 45.0,
+        "west": 82.0,
+        "east": 101.0
+      },
+      "terrain_profile": {
+        "environment": "mountains",
+        "height_scale": 0.72,
+        "ridge_strength": 0.7,
+        "roughness": 0.62,
+        "valley_strength": 0.62,
+        "peak_sharpness": 1.3
+      },
+      "tags": [
+        "central_asia",
+        "glaciated",
+        "continental"
+      ]
+    },
+
+    {
+      "id": "western_ghats",
+      "name": "Western Ghats",
+      "native_names": ["Sahyadri"],
+      "continent": ["Asia"],
+      "countries": [
+        "India"
+      ],
+      "region": "Western India",
+      "type": "escarpment_highland",
+      "geological_setting": "rift_margin_and_erosion",
+      "length_km": 1600,
+      "highest_peak": {
+        "name": "Anamudi",
+        "elevation_m": 2695,
+        "latitude": 10.166,
+        "longitude": 77.067,
+        "country": "India"
+      },
+      "approximate_extent": {
+        "north": 21.5,
+        "south": 8.0,
+        "west": 72.5,
+        "east": 77.5
+      },
+      "terrain_profile": {
+        "environment": "plateau",
+        "height_scale": 0.52,
+        "ridge_strength": 0.55,
+        "roughness": 0.38,
+        "valley_strength": 0.62,
+        "peak_sharpness": 0.7
+      },
+      "tags": [
+        "india",
+        "escarpment",
+        "monsoon"
+      ]
+    },
+
+    {
+      "id": "japanese_alps",
+      "name": "Japanese Alps",
+      "native_names": [],
+      "continent": ["Asia"],
+      "countries": [
+        "Japan"
+      ],
+      "region": "Honshu",
+      "type": "volcanic_and_fold_mountain_system",
+      "geological_setting": "plate_convergence",
+      "highest_peak": {
+        "name": "Mount Kita",
+        "elevation_m": 3193,
+        "latitude": 35.674,
+        "longitude": 138.239,
+        "country": "Japan"
+      },
+      "approximate_extent": {
+        "north": 37.5,
+        "south": 35.0,
+        "west": 136.0,
+        "east": 139.5
+      },
+      "terrain_profile": {
+        "environment": "mountains",
+        "height_scale": 0.66,
+        "ridge_strength": 0.7,
+        "roughness": 0.68,
+        "valley_strength": 0.58,
+        "peak_sharpness": 1.35
+      },
+      "tags": [
+        "japan",
+        "volcanic",
+        "plate_convergence"
+      ]
+    },
+
+    {
+      "id": "new_guinea_highlands",
+      "name": "New Guinea Highlands",
+      "native_names": [],
+      "continent": ["Oceania"],
+      "countries": [
+        "Indonesia",
+        "Papua New Guinea"
+      ],
+      "region": "New Guinea",
+      "type": "continental_mountain_system",
+      "geological_setting": "plate_collision",
+      "length_km": 1950,
+      "highest_peak": {
+        "name": "Puncak Jaya",
+        "elevation_m": 4884,
+        "latitude": -4.083,
+        "longitude": 137.183,
+        "country": "Indonesia"
+      },
+      "approximate_extent": {
+        "north": 0.0,
+        "south": -9.0,
+        "west": 131.0,
+        "east": 146.0
+      },
+      "terrain_profile": {
+        "environment": "mountains",
+        "height_scale": 0.8,
+        "ridge_strength": 0.7,
+        "roughness": 0.72,
+        "valley_strength": 0.68,
+        "peak_sharpness": 1.45
+      },
+      "tags": [
+        "tropical",
+        "high_altitude",
+        "oceania"
+      ]
+    }
+  ],
+
+  "terrain_features": {
+    "peaks": [
+      {
+        "id": "everest",
+        "name": "Mount Everest",
+        "elevation_m": 8848.86,
+        "latitude": 27.9881,
+        "longitude": 86.925,
+        "type": "mountain_peak"
+      },
+      {
+        "id": "k2",
+        "name": "K2",
+        "elevation_m": 8611,
+        "latitude": 35.8808,
+        "longitude": 76.5158,
+        "type": "mountain_peak"
+      },
+      {
+        "id": "aconcagua",
+        "name": "Aconcagua",
+        "elevation_m": 6961,
+        "latitude": -32.6532,
+        "longitude": -70.0109,
+        "type": "mountain_peak"
+      },
+      {
+        "id": "denali",
+        "name": "Denali",
+        "elevation_m": 6190.5,
+        "latitude": 63.0695,
+        "longitude": -151.0074,
+        "type": "mountain_peak"
+      },
+      {
+        "id": "elbrus",
+        "name": "Mount Elbrus",
+        "elevation_m": 5642,
+        "latitude": 43.355,
+        "longitude": 42.437,
+        "type": "volcanic_peak"
+      },
+      {
+        "id": "kilimanjaro",
+        "name": "Mount Kilimanjaro",
+        "elevation_m": 5895,
+        "latitude": -3.0674,
+        "longitude": 37.3556,
+        "type": "volcanic_peak"
+      },
+      {
+        "id": "mont_blanc",
+        "name": "Mont Blanc",
+        "elevation_m": 4808.7,
+        "latitude": 45.8326,
+        "longitude": 6.8652,
+        "type": "mountain_peak"
+      },
+      {
+        "id": "kosciuszko",
+        "name": "Mount Kosciuszko",
+        "elevation_m": 2228,
+        "latitude": -36.4559,
+        "longitude": 148.2632,
+        "type": "mountain_peak"
+      }
+    ],
+
+    "volcanoes": [
+      {
+        "id": "fuji",
+        "name": "Mount Fuji",
+        "elevation_m": 3776,
+        "latitude": 35.3606,
+        "longitude": 138.7274,
+        "country": "Japan",
+        "type": "stratovolcano"
+      },
+      {
+        "id": "kilimanjaro",
+        "name": "Mount Kilimanjaro",
+        "elevation_m": 5895,
+        "latitude": -3.0674,
+        "longitude": 37.3556,
+        "country": "Tanzania",
+        "type": "stratovolcano"
+      },
+      {
+        "id": "mauna_kea",
+        "name": "Mauna Kea",
+        "elevation_m": 4207,
+        "latitude": 19.8207,
+        "longitude": -155.4681,
+        "country": "United States",
+        "type": "shield_volcano"
+      },
+      {
+        "id": "etna",
+        "name": "Mount Etna",
+        "elevation_m": 3357,
+        "latitude": 37.751,
+        "longitude": 14.9934,
+        "country": "Italy",
+        "type": "stratovolcano"
+      },
+      {
+        "id": "vesuvius",
+        "name": "Mount Vesuvius",
+        "elevation_m": 1281,
+        "latitude": 40.8218,
+        "longitude": 14.426,
+        "country": "Italy",
+        "type": "stratovolcano"
+      }
+    ]
+  },
+
+  "classification": {
+    "mountain": {
+      "label": "Mountain",
+      "description": "Terrain dominated by elevated relief and significant local elevation change."
+    },
+    "fold_mountain": {
+      "label": "Fold Mountain",
+      "description": "Mountain terrain primarily associated with compressional deformation."
+    },
+    "volcanic": {
+      "label": "Volcanic",
+      "description": "Terrain associated with volcanic construction, lava flows or volcanic uplift."
+    },
+    "plateau": {
+      "label": "Plateau",
+      "description": "Elevated terrain with broad relatively level surfaces."
+    },
+    "escarpment": {
+      "label": "Escarpment",
+      "description": "Long steep slope separating different elevations or geological surfaces."
+    },
+    "fault_block": {
+      "label": "Fault-Block",
+      "description": "Mountain terrain created primarily through faulting and crustal uplift."
+    },
+    "ancient_fold": {
+      "label": "Ancient Fold",
+      "description": "Old mountain systems substantially reduced by long-term erosion."
+    }
+  },
+
+  "sources": [
+    {
+      "id": "global_mountain_inventory",
+      "name": "A hierarchical inventory of the world's mountains for global comparative mountain science",
+      "type": "scientific_dataset",
+      "url": "https://doi.org/10.1038/s41597-022-01256-y"
+    },
+    {
+      "id": "mountain_ranges_reference",
+      "name": "List of mountain ranges",
+      "type": "reference",
+      "url": "https://en.wikipedia.org/wiki/List_of_mountain_ranges"
+    },
+    {
+      "id": "euratlas_mountains",
+      "name": "World Atlas - Major Mountains of the World",
+      "type": "reference",
+      "url": "https://www.euratlas.net/geography/world/mountains/index.html"
+    }
+  ]
+}
