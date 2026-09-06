@@ -1,0 +1,443 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+
+  <meta
+    name="viewport"
+    content="width=device-width, initial-scale=1.0"
+  >
+
+  <meta
+    name="description"
+    content="Atlas Environmental Terrain Viewer"
+  >
+
+  <title>Atlas — Environmental Terrain</title>
+
+  <link rel="stylesheet" href="./styles.css">
+</head>
+
+<body>
+
+  <!-- ============================================================
+       APPLICATION
+       ============================================================ -->
+
+  <div id="app">
+
+    <!-- ==========================================================
+         3D VIEWPORT
+         ========================================================== -->
+
+    <main
+      id="terrain-viewer"
+      aria-label="3D environmental terrain viewer"
+    ></main>
+
+
+    <!-- ==========================================================
+         TOP BAR
+         ========================================================== -->
+
+    <header class="topbar">
+
+      <div class="brand">
+
+        <div class="brand-mark">
+          A
+        </div>
+
+        <div class="brand-copy">
+
+          <div class="brand-title">
+            ATLAS
+          </div>
+
+          <div class="brand-subtitle">
+            Environmental Terrain
+          </div>
+
+        </div>
+
+      </div>
+
+
+      <div class="topbar-status">
+
+        <span class="status-indicator"></span>
+
+        <span id="renderer-status">
+          TERRAIN ENGINE
+        </span>
+
+      </div>
+
+    </header>
+
+
+    <!-- ==========================================================
+         ENVIRONMENT SWITCHER
+         ========================================================== -->
+
+    <aside
+      class="environment-panel"
+      aria-label="Environment selector"
+    >
+
+      <div class="panel-header">
+
+        <div>
+
+          <div class="panel-eyebrow">
+            ENVIRONMENT
+          </div>
+
+          <h1 id="environment-title">
+            Mountain Range
+          </h1>
+
+        </div>
+
+        <div class="panel-index">
+          01
+        </div>
+
+      </div>
+
+
+      <div class="environment-list">
+
+
+        <!-- MOUNTAIN RANGE -->
+
+        <button
+          class="environment-option active"
+          data-environment="mountains"
+          type="button"
+        >
+
+          <span class="option-number">
+            01
+          </span>
+
+          <span class="option-content">
+
+            <span class="option-title">
+              Mountain Range
+            </span>
+
+            <span class="option-description">
+              High elevation terrain
+            </span>
+
+          </span>
+
+          <span class="option-arrow">
+            →
+          </span>
+
+        </button>
+
+
+        <!-- VALLEY -->
+
+        <button
+          class="environment-option"
+          data-environment="valley"
+          type="button"
+        >
+
+          <span class="option-number">
+            02
+          </span>
+
+          <span class="option-content">
+
+            <span class="option-title">
+              Valley
+            </span>
+
+            <span class="option-description">
+              Lowland terrain
+            </span>
+
+          </span>
+
+          <span class="option-arrow">
+            →
+          </span>
+
+        </button>
+
+
+        <!-- DESERT -->
+
+        <button
+          class="environment-option"
+          data-environment="desert"
+          type="button"
+        >
+
+          <span class="option-number">
+            03
+          </span>
+
+          <span class="option-content">
+
+            <span class="option-title">
+              Desert
+            </span>
+
+            <span class="option-description">
+              Arid terrain
+            </span>
+
+          </span>
+
+          <span class="option-arrow">
+            →
+          </span>
+
+        </button>
+
+
+        <!-- PLATEAU -->
+
+        <button
+          class="environment-option"
+          data-environment="plateau"
+          type="button"
+        >
+
+          <span class="option-number">
+            04
+          </span>
+
+          <span class="option-content">
+
+            <span class="option-title">
+              Plateau
+            </span>
+
+            <span class="option-description">
+              Elevated flatlands
+            </span>
+
+          </span>
+
+          <span class="option-arrow">
+            →
+          </span>
+
+        </button>
+
+
+        <!-- COASTAL -->
+
+        <button
+          class="environment-option"
+          data-environment="coastal"
+          type="button"
+        >
+
+          <span class="option-number">
+            05
+          </span>
+
+          <span class="option-content">
+
+            <span class="option-title">
+              Coastal
+            </span>
+
+            <span class="option-description">
+              Land and ocean boundary
+            </span>
+
+          </span>
+
+          <span class="option-arrow">
+            →
+          </span>
+
+        </button>
+
+
+        <!-- VOLCANIC -->
+
+        <button
+          class="environment-option"
+          data-environment="volcanic"
+          type="button"
+        >
+
+          <span class="option-number">
+            06
+          </span>
+
+          <span class="option-content">
+
+            <span class="option-title">
+              Volcanic
+            </span>
+
+            <span class="option-description">
+              Volcanic landscape
+            </span>
+
+          </span>
+
+          <span class="option-arrow">
+            →
+          </span>
+
+        </button>
+
+
+      </div>
+
+    </aside>
+
+
+    <!-- ==========================================================
+         VIEW CONTROLS
+         ========================================================== -->
+
+    <div class="viewer-controls">
+
+      <div class="control">
+
+        <span class="control-key">
+          DRAG
+        </span>
+
+        <span>
+          Orbit
+        </span>
+
+      </div>
+
+      <div class="control">
+
+        <span class="control-key">
+          SCROLL
+        </span>
+
+        <span>
+          Zoom
+        </span>
+
+      </div>
+
+      <div class="control">
+
+        <span class="control-key">
+          RIGHT DRAG
+        </span>
+
+        <span>
+          Pan
+        </span>
+
+      </div>
+
+    </div>
+
+
+    <!-- ==========================================================
+         TERRAIN INFORMATION
+         ========================================================== -->
+
+    <div class="terrain-info">
+
+      <div class="info-item">
+
+        <span class="info-label">
+          TERRAIN
+        </span>
+
+        <span
+          class="info-value"
+          id="terrain-type"
+        >
+          MOUNTAIN RANGE
+        </span>
+
+      </div>
+
+      <div class="info-item">
+
+        <span class="info-label">
+          MODE
+        </span>
+
+        <span
+          class="info-value"
+          id="terrain-mode"
+        >
+          PROCEDURAL
+        </span>
+
+      </div>
+
+      <div class="info-item">
+
+        <span class="info-label">
+          DIMENSION
+        </span>
+
+        <span class="info-value">
+          3D
+        </span>
+
+      </div>
+
+    </div>
+
+
+    <!-- ==========================================================
+         LOADING INDICATOR
+         ========================================================== -->
+
+    <div
+      id="loading"
+      class="loading"
+    >
+
+      <div class="loading-line"></div>
+
+      <span>
+        INITIALIZING TERRAIN
+      </span>
+
+    </div>
+
+  </div>
+
+
+  <!-- ============================================================
+       THREE.JS IMPORT MAP
+       ============================================================ -->
+
+  <script type="importmap">
+  {
+    "imports": {
+      "three": "https://cdn.jsdelivr.net/npm/three@0.180.0/build/three.module.js",
+      "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.180.0/examples/jsm/"
+    }
+  }
+  </script>
+
+
+  <!-- ============================================================
+       APPLICATION
+       ============================================================ -->
+
+  <script
+    type="module"
+    src="./app.js"
+  ></script>
+
+</body>
+</html>
