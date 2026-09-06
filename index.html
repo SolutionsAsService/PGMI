@@ -1,0 +1,777 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+
+  <meta
+    name="viewport"
+    content="width=device-width, initial-scale=1.0"
+  />
+
+  <meta
+    name="description"
+    content="Atlas Terrain Renderer — interactive procedural 3D terrain visualization."
+  />
+
+  <title>Atlas Terrain Renderer</title>
+
+  <style>
+    * {
+      box-sizing: border-box;
+    }
+
+    html,
+    body {
+      width: 100%;
+      height: 100%;
+      margin: 0;
+      overflow: hidden;
+      background: #080b0c;
+      font-family:
+        Inter,
+        ui-sans-serif,
+        system-ui,
+        -apple-system,
+        BlinkMacSystemFont,
+        "Segoe UI",
+        sans-serif;
+    }
+
+    #app {
+      position: fixed;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+    }
+
+    canvas {
+      display: block;
+      width: 100%;
+      height: 100%;
+    }
+
+    .ui {
+      position: fixed;
+      inset: 0;
+      pointer-events: none;
+      color: #e8ece9;
+    }
+
+    .header {
+      position: absolute;
+      top: 24px;
+      left: 28px;
+      pointer-events: none;
+    }
+
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      font-size: 13px;
+      font-weight: 700;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+    }
+
+    .brand-mark {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: #aeb8b2;
+      box-shadow: 0 0 14px rgba(190, 200, 194, 0.5);
+    }
+
+    .subtitle {
+      margin-top: 7px;
+      color: rgba(220, 227, 222, 0.55);
+      font-size: 11px;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+    }
+
+    .controls {
+      position: absolute;
+      right: 24px;
+      bottom: 24px;
+
+      padding: 12px 14px;
+
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      border-radius: 8px;
+
+      background: rgba(8, 11, 12, 0.72);
+      backdrop-filter: blur(12px);
+
+      color: rgba(225, 231, 227, 0.6);
+
+      font-size: 10px;
+      line-height: 1.7;
+      letter-spacing: 0.04em;
+    }
+
+    .controls strong {
+      color: rgba(235, 240, 236, 0.9);
+      font-weight: 600;
+    }
+
+    .status {
+      position: absolute;
+      left: 28px;
+      bottom: 24px;
+
+      display: flex;
+      align-items: center;
+      gap: 8px;
+
+      color: rgba(225, 231, 227, 0.45);
+
+      font-size: 10px;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+    }
+
+    .status-dot {
+      width: 6px;
+      height: 6px;
+      border-radius: 50%;
+      background: #9da8a2;
+    }
+  </style>
+</head>
+
+<body>
+
+  <div id="app"></div>
+
+  <div class="ui">
+
+    <div class="header">
+      <div class="brand">
+        <span class="brand-mark"></span>
+        Atlas Terrain
+      </div>
+
+      <div class="subtitle">
+        Procedural elevation renderer
+      </div>
+    </div>
+
+    <div class="status">
+      <span class="status-dot"></span>
+      Terrain Engine Online
+    </div>
+
+    <div class="controls">
+      <strong>ORBIT</strong> — drag<br>
+      <strong>ZOOM</strong> — scroll<br>
+      <strong>PAN</strong> — right drag
+    </div>
+
+  </div>
+
+  <!-- Three.js -->
+  <script type="importmap">
+  {
+    "imports": {
+      "three": "https://cdn.jsdelivr.net/npm/three@0.180.0/build/three.module.js",
+      "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.180.0/examples/jsm/"
+    }
+  }
+  </script>
+
+  <script type="module">
+
+    import * as THREE from "three";
+    import { OrbitControls } from "three/addons/controls/OrbitControls.js";
+
+    // ============================================================
+    // CONFIGURATION
+    // ============================================================
+
+    const CONFIG = {
+
+      terrain: {
+        width: 180,
+        depth: 180,
+
+        segments: 180,
+
+        height: 32,
+
+        frequency: 0.035,
+
+        detailFrequency: 0.09,
+
+        microFrequency: 0.22,
+
+        detailStrength: 0.28,
+
+        microStrength: 0.08,
+
+        valleyStrength: 0.25
+      },
+
+      camera: {
+        fov: 45,
+        near: 0.1,
+        far: 1000,
+
+        position: {
+          x: 0,
+          y: 62,
+          z: 115
+        }
+      }
+
+    };
+
+
+    // ============================================================
+    // RENDERER
+    // ============================================================
+
+    const renderer =
+      new THREE.WebGLRenderer({
+        antialias: true,
+        powerPreference: "high-performance"
+      });
+
+    renderer.setPixelRatio(
+      Math.min(window.devicePixelRatio, 2)
+    );
+
+    renderer.setSize(
+      window.innerWidth,
+      window.innerHeight
+    );
+
+    renderer.setClearColor(
+      0x080b0c,
+      1
+    );
+
+    renderer.outputColorSpace =
+      THREE.SRGBColorSpace;
+
+    renderer.shadowMap.enabled = true;
+
+    document
+      .getElementById("app")
+      .appendChild(renderer.domElement);
+
+
+    // ============================================================
+    // SCENE
+    // ============================================================
+
+    const scene =
+      new THREE.Scene();
+
+    scene.background =
+      new THREE.Color(0x080b0c);
+
+    scene.fog =
+      new THREE.Fog(
+        0x080b0c,
+        95,
+        350
+      );
+
+
+    // ============================================================
+    // CAMERA
+    // ============================================================
+
+    const camera =
+      new THREE.PerspectiveCamera(
+        CONFIG.camera.fov,
+        window.innerWidth /
+          window.innerHeight,
+        CONFIG.camera.near,
+        CONFIG.camera.far
+      );
+
+    camera.position.set(
+      CONFIG.camera.position.x,
+      CONFIG.camera.position.y,
+      CONFIG.camera.position.z
+    );
+
+
+    // ============================================================
+    // LIGHTING
+    // ============================================================
+
+    const hemisphere =
+      new THREE.HemisphereLight(
+        0xaeb8b2,
+        0x111412,
+        1.25
+      );
+
+    scene.add(hemisphere);
+
+
+    const sun =
+      new THREE.DirectionalLight(
+        0xffffff,
+        2.8
+      );
+
+    sun.position.set(
+      -70,
+      110,
+      -80
+    );
+
+    sun.castShadow = true;
+
+    sun.shadow.mapSize.width = 2048;
+    sun.shadow.mapSize.height = 2048;
+
+    sun.shadow.camera.near = 1;
+    sun.shadow.camera.far = 400;
+
+    sun.shadow.camera.left = -150;
+    sun.shadow.camera.right = 150;
+    sun.shadow.camera.top = 150;
+    sun.shadow.camera.bottom = -150;
+
+    scene.add(sun);
+
+
+    // ============================================================
+    // TERRAIN GEOMETRY
+    // ============================================================
+
+    const geometry =
+      new THREE.PlaneGeometry(
+        CONFIG.terrain.width,
+        CONFIG.terrain.depth,
+        CONFIG.terrain.segments,
+        CONFIG.terrain.segments
+      );
+
+    geometry.rotateX(-Math.PI / 2);
+
+
+    // ============================================================
+    // TERRAIN GENERATION
+    // ============================================================
+
+    const position =
+      geometry.attributes.position;
+
+
+    for (
+      let i = 0;
+      i < position.count;
+      i++
+    ) {
+
+      const x =
+        position.getX(i);
+
+      const z =
+        position.getZ(i);
+
+
+      const base =
+        Math.sin(
+          x * CONFIG.terrain.frequency * 1.7
+        ) *
+        Math.cos(
+          z * CONFIG.terrain.frequency * 1.3
+        );
+
+
+      const secondary =
+        Math.sin(
+          x * CONFIG.terrain.detailFrequency * 3.7 +
+          Math.cos(
+            z * CONFIG.terrain.detailFrequency * 2.1
+          )
+        ) *
+        Math.cos(
+          z * CONFIG.terrain.detailFrequency * 2.8
+        );
+
+
+      const tertiary =
+        Math.sin(
+          x * CONFIG.terrain.detailFrequency
+        ) *
+        Math.cos(
+          z * CONFIG.terrain.detailFrequency * 0.8
+        );
+
+
+      const micro =
+        Math.sin(
+          x * CONFIG.terrain.microFrequency +
+          Math.cos(z * 0.13)
+        ) *
+        Math.cos(
+          z * CONFIG.terrain.microFrequency
+        );
+
+
+      // Broad mountain mask
+
+      const radialDistance =
+        Math.sqrt(
+          Math.pow(
+            x / (CONFIG.terrain.width * 0.5),
+            2
+          ) +
+          Math.pow(
+            z / (CONFIG.terrain.depth * 0.5),
+            2
+          )
+        );
+
+
+      const mountainMask =
+        Math.max(
+          0,
+          1 - radialDistance * 0.65
+        );
+
+
+      // Valleys
+
+      const valley =
+        Math.abs(
+          Math.sin(x * 0.055) *
+          Math.cos(z * 0.047)
+        );
+
+
+      let elevation =
+        base * 0.45 +
+        secondary *
+          CONFIG.terrain.detailStrength +
+        tertiary * 0.25 +
+        micro *
+          CONFIG.terrain.microStrength;
+
+
+      elevation *= mountainMask;
+
+
+      elevation +=
+        valley *
+        CONFIG.terrain.valleyStrength *
+        mountainMask;
+
+
+      // Ridge structure
+
+      const ridge =
+        1 -
+        Math.abs(
+          Math.sin(x * 0.035)
+        );
+
+
+      elevation +=
+        ridge *
+        0.18 *
+        mountainMask;
+
+
+      // Normalize
+
+      elevation =
+        (elevation + 1) * 0.5;
+
+
+      elevation =
+        THREE.MathUtils.clamp(
+          elevation,
+          0,
+          1
+        );
+
+
+      // Mountain contrast
+
+      elevation =
+        Math.pow(
+          elevation,
+          1.65
+        );
+
+
+      position.setY(
+        i,
+        elevation *
+          CONFIG.terrain.height
+      );
+
+    }
+
+
+    position.needsUpdate = true;
+
+    geometry.computeVertexNormals();
+
+
+    // ============================================================
+    // TERRAIN COLORS
+    // ============================================================
+
+    const colors =
+      new Float32Array(
+        position.count * 3
+      );
+
+
+    const deep =
+      new THREE.Color("#17201c");
+
+    const low =
+      new THREE.Color("#28342e");
+
+    const mid =
+      new THREE.Color("#465149");
+
+    const high =
+      new THREE.Color("#737d76");
+
+    const peak =
+      new THREE.Color("#b8beb9");
+
+    const snow =
+      new THREE.Color("#e2e5e2");
+
+    const color =
+      new THREE.Color();
+
+
+    for (
+      let i = 0;
+      i < position.count;
+      i++
+    ) {
+
+      const elevation =
+        THREE.MathUtils.clamp(
+          position.getY(i) /
+            CONFIG.terrain.height,
+          0,
+          1
+        );
+
+
+      if (elevation < 0.18) {
+
+        color.copy(deep);
+
+      }
+
+      else if (elevation < 0.38) {
+
+        color.lerpColors(
+          deep,
+          low,
+          (elevation - 0.18) /
+            0.20
+        );
+
+      }
+
+      else if (elevation < 0.60) {
+
+        color.lerpColors(
+          low,
+          mid,
+          (elevation - 0.38) /
+            0.22
+        );
+
+      }
+
+      else if (elevation < 0.78) {
+
+        color.lerpColors(
+          mid,
+          high,
+          (elevation - 0.60) /
+            0.18
+        );
+
+      }
+
+      else if (elevation < 0.91) {
+
+        color.lerpColors(
+          high,
+          peak,
+          (elevation - 0.78) /
+            0.13
+        );
+
+      }
+
+      else {
+
+        color.lerpColors(
+          peak,
+          snow,
+          (elevation - 0.91) /
+            0.09
+        );
+
+      }
+
+
+      colors[i * 3] =
+        color.r;
+
+      colors[i * 3 + 1] =
+        color.g;
+
+      colors[i * 3 + 2] =
+        color.b;
+
+    }
+
+
+    geometry.setAttribute(
+      "color",
+      new THREE.BufferAttribute(
+        colors,
+        3
+      )
+    );
+
+
+    // ============================================================
+    // TERRAIN MATERIAL
+    // ============================================================
+
+    const material =
+      new THREE.MeshStandardMaterial({
+
+        vertexColors: true,
+
+        wireframe: true,
+
+        roughness: 1,
+
+        metalness: 0
+
+      });
+
+
+    // ============================================================
+    // TERRAIN MESH
+    // ============================================================
+
+    const terrain =
+      new THREE.Mesh(
+        geometry,
+        material
+      );
+
+    terrain.castShadow = true;
+
+    terrain.receiveShadow = true;
+
+    scene.add(terrain);
+
+
+    // ============================================================
+    // CONTROLS
+    // ============================================================
+
+    const controls =
+      new OrbitControls(
+        camera,
+        renderer.domElement
+      );
+
+    controls.enableDamping = true;
+
+    controls.dampingFactor = 0.055;
+
+    controls.enablePan = true;
+
+    controls.minDistance = 20;
+
+    controls.maxDistance = 320;
+
+    controls.maxPolarAngle =
+      Math.PI * 0.49;
+
+    controls.target.set(
+      0,
+      6,
+      0
+    );
+
+    controls.update();
+
+
+    // ============================================================
+    // RESIZE
+    // ============================================================
+
+    window.addEventListener(
+      "resize",
+      () => {
+
+        camera.aspect =
+          window.innerWidth /
+          window.innerHeight;
+
+        camera.updateProjectionMatrix();
+
+        renderer.setSize(
+          window.innerWidth,
+          window.innerHeight
+        );
+
+        renderer.setPixelRatio(
+          Math.min(
+            window.devicePixelRatio,
+            2
+          )
+        );
+
+      }
+    );
+
+
+    // ============================================================
+    // ANIMATION
+    // ============================================================
+
+    const clock =
+      new THREE.Clock();
+
+
+    function animate() {
+
+      requestAnimationFrame(
+        animate
+      );
+
+      controls.update();
+
+      renderer.render(
+        scene,
+        camera
+      );
+
+    }
+
+
+    animate();
+
+  </script>
+
+</body>
+</html>
