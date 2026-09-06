@@ -106,196 +106,12 @@
       </div>
 
 
-      <div class="environment-list">
+      <!-- Populated from data/mountains.json by app.js -->
 
-
-        <!-- MOUNTAIN RANGE -->
-
-        <button
-          class="environment-option active"
-          data-environment="mountains"
-          type="button"
-        >
-
-          <span class="option-number">
-            01
-          </span>
-
-          <span class="option-content">
-
-            <span class="option-title">
-              Mountain Range
-            </span>
-
-            <span class="option-description">
-              High elevation terrain
-            </span>
-
-          </span>
-
-          <span class="option-arrow">
-            →
-          </span>
-
-        </button>
-
-
-        <!-- VALLEY -->
-
-        <button
-          class="environment-option"
-          data-environment="valley"
-          type="button"
-        >
-
-          <span class="option-number">
-            02
-          </span>
-
-          <span class="option-content">
-
-            <span class="option-title">
-              Valley
-            </span>
-
-            <span class="option-description">
-              Lowland terrain
-            </span>
-
-          </span>
-
-          <span class="option-arrow">
-            →
-          </span>
-
-        </button>
-
-
-        <!-- DESERT -->
-
-        <button
-          class="environment-option"
-          data-environment="desert"
-          type="button"
-        >
-
-          <span class="option-number">
-            03
-          </span>
-
-          <span class="option-content">
-
-            <span class="option-title">
-              Desert
-            </span>
-
-            <span class="option-description">
-              Arid terrain
-            </span>
-
-          </span>
-
-          <span class="option-arrow">
-            →
-          </span>
-
-        </button>
-
-
-        <!-- PLATEAU -->
-
-        <button
-          class="environment-option"
-          data-environment="plateau"
-          type="button"
-        >
-
-          <span class="option-number">
-            04
-          </span>
-
-          <span class="option-content">
-
-            <span class="option-title">
-              Plateau
-            </span>
-
-            <span class="option-description">
-              Elevated flatlands
-            </span>
-
-          </span>
-
-          <span class="option-arrow">
-            →
-          </span>
-
-        </button>
-
-
-        <!-- COASTAL -->
-
-        <button
-          class="environment-option"
-          data-environment="coastal"
-          type="button"
-        >
-
-          <span class="option-number">
-            05
-          </span>
-
-          <span class="option-content">
-
-            <span class="option-title">
-              Coastal
-            </span>
-
-            <span class="option-description">
-              Land and ocean boundary
-            </span>
-
-          </span>
-
-          <span class="option-arrow">
-            →
-          </span>
-
-        </button>
-
-
-        <!-- VOLCANIC -->
-
-        <button
-          class="environment-option"
-          data-environment="volcanic"
-          type="button"
-        >
-
-          <span class="option-number">
-            06
-          </span>
-
-          <span class="option-content">
-
-            <span class="option-title">
-              Volcanic
-            </span>
-
-            <span class="option-description">
-              Volcanic landscape
-            </span>
-
-          </span>
-
-          <span class="option-arrow">
-            →
-          </span>
-
-        </button>
-
-
-      </div>
+      <div
+        class="environment-list"
+        aria-live="polite"
+      ></div>
 
     </aside>
 
@@ -339,6 +155,57 @@
         <span>
           Pan
         </span>
+
+      </div>
+
+
+      <div class="control-actions">
+
+        <button
+          id="reset-view"
+          class="viewer-action"
+          type="button"
+        >
+
+          <span class="action-label">
+            RESET VIEW
+          </span>
+
+        </button>
+
+        <button
+          id="toggle-wireframe"
+          class="viewer-action active"
+          type="button"
+          aria-pressed="true"
+        >
+
+          <span class="action-label">
+            WIREFRAME
+          </span>
+
+          <span class="action-state">
+            ON
+          </span>
+
+        </button>
+
+        <button
+          id="toggle-rotate"
+          class="viewer-action active"
+          type="button"
+          aria-pressed="true"
+        >
+
+          <span class="action-label">
+            ROTATE
+          </span>
+
+          <span class="action-state">
+            ON
+          </span>
+
+        </button>
 
       </div>
 
@@ -393,6 +260,21 @@
 
       </div>
 
+      <div class="info-item">
+
+        <span class="info-label">
+          SOURCE
+        </span>
+
+        <span
+          class="info-value"
+          id="data-source"
+        >
+          DATASET
+        </span>
+
+      </div>
+
     </div>
 
 
@@ -423,8 +305,8 @@
   <script type="importmap">
   {
     "imports": {
-      "three": "https://cdn.jsdelivr.net/npm/three@0.180.0/build/three.module.js",
-      "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.180.0/examples/jsm/"
+      "three": "./vendor/three/build/three.module.js",
+      "three/addons/": "./vendor/three/examples/jsm/"
     }
   }
   </script>
