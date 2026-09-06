@@ -1,0 +1,1098 @@
+```css
+/* ==========================================================================
+   ATLAS TERRAIN
+   Global Application Styles
+   ========================================================================== */
+
+
+/* ==========================================================================
+   RESET
+   ========================================================================== */
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+
+html,
+body {
+  width: 100%;
+  height: 100%;
+  margin: 0;
+  padding: 0;
+}
+
+
+body {
+  overflow: hidden;
+
+  background:
+    #080b0c;
+
+  color:
+    #e8ece9;
+
+  font-family:
+    Inter,
+    ui-sans-serif,
+    system-ui,
+    -apple-system,
+    BlinkMacSystemFont,
+    "Segoe UI",
+    sans-serif;
+
+  -webkit-font-smoothing:
+    antialiased;
+
+  text-rendering:
+    optimizeLegibility;
+}
+
+
+/* ==========================================================================
+   APPLICATION ROOT
+   ========================================================================== */
+
+#app {
+  position: fixed;
+
+  inset: 0;
+
+  width: 100%;
+  height: 100%;
+
+  overflow: hidden;
+
+  isolation: isolate;
+}
+
+
+/* ==========================================================================
+   TERRAIN VIEWPORT
+   ========================================================================== */
+
+#terrain-viewer {
+  position: absolute;
+
+  inset: 0;
+
+  width: 100%;
+  height: 100%;
+
+  overflow: hidden;
+
+  background:
+    #080b0c;
+
+  z-index: 1;
+}
+
+
+#terrain-viewer canvas {
+  display: block;
+
+  width: 100%;
+  height: 100%;
+
+  outline: none;
+}
+
+
+/* ==========================================================================
+   GLOBAL UI LAYER
+   ========================================================================== */
+
+.ui {
+  position: fixed;
+
+  inset: 0;
+
+  z-index: 10;
+
+  pointer-events: none;
+
+  user-select: none;
+}
+
+
+/* ==========================================================================
+   TOP BAR
+   ========================================================================== */
+
+.topbar {
+  position: absolute;
+
+  top: 0;
+  left: 0;
+  right: 0;
+
+  display: flex;
+
+  align-items: center;
+
+  justify-content: space-between;
+
+  padding:
+    22px 28px;
+
+  pointer-events: none;
+}
+
+
+/* ==========================================================================
+   BRAND
+   ========================================================================== */
+
+.brand {
+  display: flex;
+
+  align-items: center;
+
+  gap: 11px;
+}
+
+
+.brand-mark {
+  display: flex;
+
+  align-items: center;
+
+  justify-content: center;
+
+  width: 28px;
+  height: 28px;
+
+  border:
+    1px solid rgba(220, 230, 224, 0.24);
+
+  border-radius: 7px;
+
+  background:
+    rgba(255, 255, 255, 0.035);
+
+  color:
+    rgba(235, 241, 237, 0.9);
+
+  font-size: 11px;
+
+  font-weight: 700;
+
+  letter-spacing:
+    0.08em;
+}
+
+
+.brand-copy {
+  display: flex;
+
+  flex-direction: column;
+
+  gap: 2px;
+}
+
+
+.brand-title {
+  color:
+    rgba(240, 244, 241, 0.94);
+
+  font-size: 12px;
+
+  font-weight: 700;
+
+  letter-spacing:
+    0.16em;
+
+  line-height: 1;
+}
+
+
+.brand-subtitle {
+  color:
+    rgba(215, 224, 218, 0.42);
+
+  font-size: 9px;
+
+  font-weight: 500;
+
+  letter-spacing:
+    0.09em;
+
+  line-height: 1.2;
+
+  text-transform:
+    uppercase;
+}
+
+
+/* ==========================================================================
+   STATUS
+   ========================================================================== */
+
+.topbar-status {
+  display: flex;
+
+  align-items: center;
+
+  gap: 8px;
+
+  color:
+    rgba(221, 229, 224, 0.42);
+
+  font-size: 9px;
+
+  font-weight: 600;
+
+  letter-spacing:
+    0.12em;
+
+  text-transform:
+    uppercase;
+}
+
+
+.status-indicator {
+  width: 6px;
+  height: 6px;
+
+  border-radius: 50%;
+
+  background:
+    #a8b2ac;
+
+  box-shadow:
+    0 0 0 3px
+    rgba(168, 178, 172, 0.07);
+
+  animation:
+    statusPulse 3s ease-in-out infinite;
+}
+
+
+@keyframes statusPulse {
+
+  0%,
+  100% {
+    opacity: 0.55;
+  }
+
+  50% {
+    opacity: 1;
+  }
+
+}
+
+
+/* ==========================================================================
+   ENVIRONMENT PANEL
+   ========================================================================== */
+
+.environment-panel {
+  position: absolute;
+
+  top: 88px;
+  left: 28px;
+
+  width: 300px;
+
+  padding:
+    18px;
+
+  pointer-events: auto;
+
+  border:
+    1px solid rgba(220, 230, 224, 0.09);
+
+  border-radius: 10px;
+
+  background:
+    rgba(8, 11, 12, 0.76);
+
+  backdrop-filter:
+    blur(18px);
+
+  -webkit-backdrop-filter:
+    blur(18px);
+
+  box-shadow:
+    0 18px 60px
+    rgba(0, 0, 0, 0.24);
+}
+
+
+/* ==========================================================================
+   PANEL HEADER
+   ========================================================================== */
+
+.panel-header {
+  display: flex;
+
+  align-items: flex-start;
+
+  justify-content: space-between;
+
+  padding:
+    2px 2px 16px;
+
+  border-bottom:
+    1px solid
+    rgba(220, 230, 224, 0.07);
+}
+
+
+.panel-eyebrow {
+  margin-bottom: 6px;
+
+  color:
+    rgba(214, 223, 217, 0.38);
+
+  font-size: 8px;
+
+  font-weight: 700;
+
+  letter-spacing:
+    0.14em;
+
+  text-transform:
+    uppercase;
+}
+
+
+.panel-header h1 {
+  margin: 0;
+
+  color:
+    rgba(239, 244, 241, 0.93);
+
+  font-size: 16px;
+
+  font-weight: 500;
+
+  letter-spacing:
+    -0.015em;
+
+  line-height: 1.2;
+}
+
+
+.panel-index {
+  color:
+    rgba(216, 225, 219, 0.28);
+
+  font-family:
+    ui-monospace,
+    SFMono-Regular,
+    Menlo,
+    Monaco,
+    Consolas,
+    monospace;
+
+  font-size: 10px;
+
+  letter-spacing:
+    0.08em;
+}
+
+
+/* ==========================================================================
+   ENVIRONMENT LIST
+   ========================================================================== */
+
+.environment-list {
+  display: flex;
+
+  flex-direction: column;
+
+  gap: 4px;
+
+  margin-top: 10px;
+}
+
+
+/* ==========================================================================
+   ENVIRONMENT OPTION
+   ========================================================================== */
+
+.environment-option {
+  position: relative;
+
+  display: grid;
+
+  grid-template-columns:
+    27px 1fr 18px;
+
+  align-items: center;
+
+  width: 100%;
+
+  min-height: 58px;
+
+  padding:
+    8px 9px;
+
+  border:
+    1px solid transparent;
+
+  border-radius: 7px;
+
+  background:
+    transparent;
+
+  color:
+    inherit;
+
+  font:
+    inherit;
+
+  text-align:
+    left;
+
+  cursor:
+    pointer;
+
+  transition:
+    background 160ms ease,
+    border-color 160ms ease,
+    transform 160ms ease;
+}
+
+
+.environment-option:hover {
+  background:
+    rgba(255, 255, 255, 0.035);
+
+  border-color:
+    rgba(220, 230, 224, 0.06);
+}
+
+
+.environment-option:active {
+  transform:
+    translateY(1px);
+}
+
+
+.environment-option.active {
+  background:
+    rgba(210, 220, 214, 0.065);
+
+  border-color:
+    rgba(210, 220, 214, 0.11);
+}
+
+
+/* ==========================================================================
+   OPTION NUMBER
+   ========================================================================== */
+
+.option-number {
+  align-self: flex-start;
+
+  padding-top: 3px;
+
+  color:
+    rgba(215, 224, 218, 0.28);
+
+  font-family:
+    ui-monospace,
+    SFMono-Regular,
+    Menlo,
+    Monaco,
+    Consolas,
+    monospace;
+
+  font-size: 9px;
+
+  letter-spacing:
+    0.04em;
+}
+
+
+.environment-option.active
+.option-number {
+  color:
+    rgba(225, 234, 228, 0.62);
+}
+
+
+/* ==========================================================================
+   OPTION CONTENT
+   ========================================================================== */
+
+.option-content {
+  display: flex;
+
+  flex-direction: column;
+
+  gap: 4px;
+
+  min-width: 0;
+}
+
+
+.option-title {
+  overflow: hidden;
+
+  color:
+    rgba(224, 231, 226, 0.72);
+
+  font-size: 11px;
+
+  font-weight: 550;
+
+  line-height: 1.2;
+
+  text-overflow: ellipsis;
+
+  white-space: nowrap;
+
+  transition:
+    color 160ms ease;
+}
+
+
+.environment-option.active
+.option-title {
+  color:
+    rgba(242, 246, 243, 0.96);
+}
+
+
+.option-description {
+  overflow: hidden;
+
+  color:
+    rgba(210, 220, 214, 0.32);
+
+  font-size: 9px;
+
+  line-height: 1.2;
+
+  text-overflow: ellipsis;
+
+  white-space: nowrap;
+}
+
+
+/* ==========================================================================
+   OPTION ARROW
+   ========================================================================== */
+
+.option-arrow {
+  color:
+    rgba(218, 227, 221, 0.2);
+
+  font-size: 13px;
+
+  text-align: right;
+
+  transform:
+    translateX(-3px);
+
+  transition:
+    color 160ms ease,
+    transform 160ms ease;
+}
+
+
+.environment-option:hover
+.option-arrow {
+  color:
+    rgba(220, 229, 223, 0.55);
+
+  transform:
+    translateX(0);
+}
+
+
+.environment-option.active
+.option-arrow {
+  color:
+    rgba(229, 237, 232, 0.7);
+
+  transform:
+    translateX(0);
+}
+
+
+/* ==========================================================================
+   VIEWER CONTROLS
+   ========================================================================== */
+
+.viewer-controls {
+  position: absolute;
+
+  right: 24px;
+  bottom: 24px;
+
+  display: flex;
+
+  flex-direction: column;
+
+  gap: 5px;
+
+  padding:
+    12px 14px;
+
+  border:
+    1px solid
+    rgba(220, 230, 224, 0.08);
+
+  border-radius: 8px;
+
+  background:
+    rgba(8, 11, 12, 0.70);
+
+  backdrop-filter:
+    blur(14px);
+
+  -webkit-backdrop-filter:
+    blur(14px);
+}
+
+
+.control {
+  display: flex;
+
+  align-items: center;
+
+  justify-content: space-between;
+
+  gap: 18px;
+
+  min-width: 125px;
+
+  color:
+    rgba(215, 224, 218, 0.36);
+
+  font-size: 9px;
+
+  line-height: 1.4;
+}
+
+
+.control-key {
+  color:
+    rgba(225, 233, 228, 0.68);
+
+  font-family:
+    ui-monospace,
+    SFMono-Regular,
+    Menlo,
+    Monaco,
+    Consolas,
+    monospace;
+
+  font-size: 8px;
+
+  letter-spacing:
+    0.05em;
+}
+
+
+/* ==========================================================================
+   TERRAIN INFORMATION
+   ========================================================================== */
+
+.terrain-info {
+  position: absolute;
+
+  left: 28px;
+  bottom: 24px;
+
+  display: flex;
+
+  align-items: center;
+
+  gap: 20px;
+
+  padding:
+    10px 13px;
+
+  border:
+    1px solid
+    rgba(220, 230, 224, 0.07);
+
+  border-radius: 7px;
+
+  background:
+    rgba(8, 11, 12, 0.65);
+
+  backdrop-filter:
+    blur(12px);
+
+  -webkit-backdrop-filter:
+    blur(12px);
+}
+
+
+.info-item {
+  display: flex;
+
+  flex-direction: column;
+
+  gap: 4px;
+}
+
+
+.info-label {
+  color:
+    rgba(214, 223, 217, 0.28);
+
+  font-size: 7px;
+
+  font-weight: 700;
+
+  letter-spacing:
+    0.12em;
+}
+
+
+.info-value {
+  color:
+    rgba(224, 232, 227, 0.68);
+
+  font-family:
+    ui-monospace,
+    SFMono-Regular,
+    Menlo,
+    Monaco,
+    Consolas,
+    monospace;
+
+  font-size: 8px;
+
+  letter-spacing:
+    0.05em;
+}
+
+
+/* ==========================================================================
+   LOADING
+   ========================================================================== */
+
+.loading {
+  position: fixed;
+
+  inset: 0;
+
+  z-index: 100;
+
+  display: flex;
+
+  align-items: center;
+
+  justify-content: center;
+
+  flex-direction: column;
+
+  gap: 13px;
+
+  background:
+    #080b0c;
+
+  color:
+    rgba(225, 233, 228, 0.42);
+
+  font-size: 8px;
+
+  font-weight: 600;
+
+  letter-spacing:
+    0.16em;
+
+  text-transform:
+    uppercase;
+
+  transition:
+    opacity 300ms ease;
+}
+
+
+.loading-line {
+  width: 90px;
+
+  height: 1px;
+
+  overflow: hidden;
+
+  background:
+    rgba(225, 233, 228, 0.08);
+
+  position: relative;
+}
+
+
+.loading-line::after {
+  content: "";
+
+  position: absolute;
+
+  top: 0;
+  left: -40%;
+
+  width: 40%;
+  height: 100%;
+
+  background:
+    rgba(225, 233, 228, 0.55);
+
+  animation:
+    loadingLine 1.2s
+    ease-in-out infinite;
+}
+
+
+@keyframes loadingLine {
+
+  0% {
+    left: -40%;
+  }
+
+  100% {
+    left: 100%;
+  }
+
+}
+
+
+/* ==========================================================================
+   FOCUS STATES
+   ========================================================================== */
+
+.environment-option:focus-visible {
+  outline:
+    1px solid
+    rgba(225, 234, 228, 0.4);
+
+  outline-offset:
+    2px;
+}
+
+
+/* ==========================================================================
+   RESPONSIVE — TABLET
+   ========================================================================== */
+
+@media (max-width: 800px) {
+
+  .environment-panel {
+    width: 270px;
+
+    left: 18px;
+
+    top: 76px;
+
+    padding: 14px;
+  }
+
+
+  .topbar {
+    padding:
+      18px;
+  }
+
+
+  .terrain-info {
+    left: 18px;
+
+    bottom: 18px;
+  }
+
+
+  .viewer-controls {
+    right: 18px;
+
+    bottom: 18px;
+  }
+
+}
+
+
+/* ==========================================================================
+   RESPONSIVE — MOBILE
+   ========================================================================== */
+
+@media (max-width: 600px) {
+
+  .topbar {
+    padding:
+      14px 16px;
+  }
+
+
+  .brand-mark {
+    width: 25px;
+    height: 25px;
+  }
+
+
+  .brand-title {
+    font-size: 10px;
+  }
+
+
+  .brand-subtitle {
+    font-size: 7px;
+  }
+
+
+  .topbar-status {
+    font-size: 7px;
+  }
+
+
+  .environment-panel {
+    top: 62px;
+
+    left: 12px;
+    right: 12px;
+
+    width: auto;
+
+    padding: 11px;
+
+    border-radius: 9px;
+  }
+
+
+  .panel-header {
+    padding-bottom:
+      10px;
+  }
+
+
+  .panel-header h1 {
+    font-size: 14px;
+  }
+
+
+  .environment-list {
+
+    display: grid;
+
+    grid-template-columns:
+      repeat(2, minmax(0, 1fr));
+
+    gap: 3px;
+
+    margin-top: 7px;
+  }
+
+
+  .environment-option {
+
+    grid-template-columns:
+      22px 1fr;
+
+    min-height: 48px;
+
+    padding:
+      6px 7px;
+  }
+
+
+  .option-arrow {
+    display: none;
+  }
+
+
+  .option-number {
+    font-size: 8px;
+  }
+
+
+  .option-title {
+    font-size: 9px;
+  }
+
+
+  .option-description {
+    font-size: 7px;
+  }
+
+
+  .terrain-info {
+
+    left: 12px;
+
+    bottom: 12px;
+
+    max-width:
+      calc(100vw - 24px);
+
+    gap: 13px;
+
+    padding:
+      8px 10px;
+  }
+
+
+  .info-label {
+    font-size: 6px;
+  }
+
+
+  .info-value {
+    font-size: 7px;
+  }
+
+
+  .viewer-controls {
+    display: none;
+  }
+
+}
+
+
+/* ==========================================================================
+   VERY SMALL MOBILE
+   ========================================================================== */
+
+@media (max-width: 380px) {
+
+  .environment-panel {
+    top: 57px;
+  }
+
+
+  .environment-option {
+    min-height: 44px;
+  }
+
+
+  .option-description {
+    display: none;
+  }
+
+
+  .terrain-info {
+    gap: 9px;
+  }
+
+}
+
+
+/* ==========================================================================
+   REDUCED MOTION
+   ========================================================================== */
+
+@media (prefers-reduced-motion: reduce) {
+
+  *,
+  *::before,
+  *::after {
+    scroll-behavior: auto !important;
+
+    animation-duration:
+      0.01ms !important;
+
+    animation-iteration-count:
+      1 !important;
+
+    transition-duration:
+      0.01ms !important;
+  }
+
+}
