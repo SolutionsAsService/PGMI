@@ -1,66 +1,42 @@
+
 import * as THREE from "three";
 import { OrbitControls } from "three/addons/controls/OrbitControls.js";
 
 /*
 |--------------------------------------------------------------------------
-| Terrain Renderer
+| ATLAS TERRAIN RENDERER
 |--------------------------------------------------------------------------
 |
-| Standalone procedural 3D terrain renderer.
+| Standalone procedural environmental terrain engine.
 |
-| Intended architecture:
+| Environments:
 |
-|   Atlas
-|      |
-|      +--> Map / Geographic Renderer
-|      |
-|      +--> Terrain Renderer
-|              |
-|              +--> DEM / elevation data
-|              +--> Procedural terrain
-|              +--> Terrain materials
-|              +--> Camera
-|              +--> Lighting
+|   mountains
+|   valley
+|   desert
+|   plateau
+|   coastal
+|   volcanic
 |
 |--------------------------------------------------------------------------
 */
 
-// -----------------------------------------------------------------------------
-// Configuration
-// -----------------------------------------------------------------------------
+
+// ============================================================================
+// CONFIGURATION
+// ============================================================================
 
 const CONFIG = {
-  terrain: {
-    width: 160,
-    depth: 160,
 
-    // Number of vertices across the terrain.
-    // Higher = more detail, lower = better performance.
+  terrain: {
+    width: 180,
+    depth: 180,
+
     segments: 180,
 
-    // Overall mountain height.
-    height: 28,
+    height: 32,
 
-    // Frequency of the primary terrain shape.
-    frequency: 0.035,
-
-    // Secondary detail.
-    detailFrequency: 0.09,
-
-    // Small-scale terrain variation.
-    microFrequency: 0.22,
-
-    // Amount of secondary detail.
-    detailStrength: 0.28,
-
-    // Amount of small-scale detail.
-    microStrength: 0.08,
-
-    // Valley shaping.
-    valleyStrength: 0.25,
-
-    // Wireframe mode.
-    wireframe: true,
+    wireframe: true
   },
 
   camera: {
@@ -70,594 +46,351 @@ const CONFIG = {
 
     position: {
       x: 0,
-      y: 65,
-      z: 115,
-    },
+      y: 62,
+      z: 115
+    }
   },
 
   fog: {
-    color: 0x080b0c,
     near: 100,
-    far: 360,
-  },
+    far: 350
+  }
 
-  colors: {
-    background: 0x080b0c,
-
-    // Terrain palette.
-    deep: new THREE.Color("#18201d"),
-    low: new THREE.Color("#26332d"),
-    mid: new THREE.Color("#435047"),
-    high: new THREE.Color("#778077"),
-    peak: new THREE.Color("#c3c8c3"),
-    snow: new THREE.Color("#e3e6e3"),
-  },
 };
 
-// -----------------------------------------------------------------------------
-// Application State
-// -----------------------------------------------------------------------------
+
+// ============================================================================
+// ENVIRONMENT DEFINITIONS
+// ============================================================================
+
+const ENVIRONMENTS = {
+
+  mountains: {
+
+    title: "Mountain Range",
+
+    index: "01",
+
+    mode: "MOUNTAIN RANGE",
+
+    height: 32,
+
+    frequency: 0.035,
+
+    detailFrequency: 0.09,
+
+    microFrequency: 0.22,
+
+    detailStrength: 0.30,
+
+    microStrength: 0.08,
+
+    valleyStrength: 0.30,
+
+    ridgeStrength: 0.24,
+
+    maskStrength: 0.65,
+
+    exponent: 1.65,
+
+    colors: [
+      "#17201c",
+      "#28342e",
+      "#465149",
+      "#737d76",
+      "#b8beb9",
+      "#e2e5e2"
+    ]
+
+  },
+
+
+  valley: {
+
+    title: "Valley",
+
+    index: "02",
+
+    mode: "LOWLAND VALLEY",
+
+    height: 15,
+
+    frequency: 0.028,
+
+    detailFrequency: 0.075,
+
+    microFrequency: 0.18,
+
+    detailStrength: 0.18,
+
+    microStrength: 0.05,
+
+    valleyStrength: 0.60,
+
+    ridgeStrength: 0.08,
+
+    maskStrength: 0.30,
+
+    exponent: 1.15,
+
+    colors: [
+      "#17221d",
+      "#304238",
+      "#526355",
+      "#768676",
+      "#9ba79b",
+      "#c8cec9"
+    ]
+
+  },
+
+
+  desert: {
+
+    title: "Desert",
+
+    index: "03",
+
+    mode: "ARID TERRAIN",
+
+    height: 19,
+
+    frequency: 0.055,
+
+    detailFrequency: 0.12,
+
+    microFrequency: 0.30,
+
+    detailStrength: 0.20,
+
+    microStrength: 0.12,
+
+    valleyStrength: 0.15,
+
+    ridgeStrength: 0.15,
+
+    maskStrength: 0.50,
+
+    exponent: 1.30,
+
+    colors: [
+      "#29241d",
+      "#51483a",
+      "#756650",
+      "#98876c",
+      "#c0ad8d",
+      "#ddd0b6"
+    ]
+
+  },
+
+
+  plateau: {
+
+    title: "Plateau",
+
+    index: "04",
+
+    mode: "ELEVATED FLATLAND",
+
+    height: 27,
+
+    frequency: 0.032,
+
+    detailFrequency: 0.075,
+
+    microFrequency: 0.18,
+
+    detailStrength: 0.16,
+
+    microStrength: 0.04,
+
+    valleyStrength: 0.12,
+
+    ridgeStrength: 0.06,
+
+    maskStrength: 0.45,
+
+    exponent: 0.72,
+
+    colors: [
+      "#202721",
+      "#374337",
+      "#566354",
+      "#747f6e",
+      "#9ca58f",
+      "#c8ccb9"
+    ]
+
+  },
+
+
+  coastal: {
+
+    title: "Coastal",
+
+    index: "05",
+
+    mode: "COASTAL TERRAIN",
+
+    height: 22,
+
+    frequency: 0.045,
+
+    detailFrequency: 0.11,
+
+    microFrequency: 0.25,
+
+    detailStrength: 0.22,
+
+    microStrength: 0.07,
+
+    valleyStrength: 0.25,
+
+    ridgeStrength: 0.14,
+
+    maskStrength: 0.55,
+
+    exponent: 1.35,
+
+    colors: [
+      "#101b1d",
+      "#263b39",
+      "#3f5952",
+      "#68766b",
+      "#9ca393",
+      "#d1d3c5"
+    ]
+
+  },
+
+
+  volcanic: {
+
+    title: "Volcanic",
+
+    index: "06",
+
+    mode: "VOLCANIC LANDSCAPE",
+
+    height: 35,
+
+    frequency: 0.025,
+
+    detailFrequency: 0.08,
+
+    microFrequency: 0.25,
+
+    detailStrength: 0.32,
+
+    microStrength: 0.10,
+
+    valleyStrength: 0.12,
+
+    ridgeStrength: 0.32,
+
+    maskStrength: 0.40,
+
+    exponent: 1.50,
+
+    colors: [
+      "#111313",
+      "#292b29",
+      "#444642",
+      "#62645e",
+      "#898b81",
+      "#b9bab0"
+    ]
+
+  }
+
+};
+
+
+// ============================================================================
+// APPLICATION STATE
+// ============================================================================
 
 let renderer;
+
 let scene;
+
 let camera;
+
 let controls;
 
 let terrain;
+
 let terrainGeometry;
+
 let terrainMaterial;
 
-let clock;
+let currentEnvironment = "mountains";
 
-const app = document.querySelector("#app") || document.body;
+let terrainGenerationId = 0;
 
-// -----------------------------------------------------------------------------
-// Initialization
-// -----------------------------------------------------------------------------
+
+// ============================================================================
+// INITIALIZATION
+// ============================================================================
 
 init();
-animate();
 
-// -----------------------------------------------------------------------------
-// Init
-// -----------------------------------------------------------------------------
+
+// ============================================================================
+// INIT
+// ============================================================================
 
 function init() {
-  clock = new THREE.Clock();
 
   createRenderer();
+
   createScene();
+
   createCamera();
+
   createLights();
-  createTerrain();
+
   createControls();
 
-  window.addEventListener("resize", handleResize);
+  createTerrain(
+    currentEnvironment
+  );
+
+  bindEnvironmentSwitcher();
+
+  updateUI(
+    currentEnvironment
+  );
+
+  hideLoading();
+
+  window.addEventListener(
+    "resize",
+    handleResize
+  );
+
+  animate();
+
 }
 
-// -----------------------------------------------------------------------------
-// Renderer
-// -----------------------------------------------------------------------------
+
+// ============================================================================
+// RENDERER
+// ============================================================================
 
 function createRenderer() {
-  renderer = new THREE.WebGLRenderer({
-    antialias: true,
-    alpha: false,
-    powerPreference: "high-performance",
-  });
 
-  renderer.setPixelRatio(
-    Math.min(window.devicePixelRatio || 1, 2)
-  );
+  renderer =
+    new THREE.WebGLRenderer({
 
-  renderer.setSize(
-    window.innerWidth,
-    window.innerHeight
-  );
+      antialias: true,
 
-  renderer.setClearColor(
-    CONFIG.colors.background,
-    1
-  );
+      powerPreference:
+        "high-performance"
 
-  renderer.outputColorSpace = THREE.SRGBColorSpace;
+    });
 
-  renderer.shadowMap.enabled = true;
-  renderer.shadowMap.type = THREE.PCFSoftShadowMap;
-
-  app.appendChild(renderer.domElement);
-
-  renderer.domElement.style.display = "block";
-  renderer.domElement.style.width = "100%";
-  renderer.domElement.style.height = "100%";
-}
-
-// -----------------------------------------------------------------------------
-// Scene
-// -----------------------------------------------------------------------------
-
-function createScene() {
-  scene = new THREE.Scene();
-
-  scene.background = new THREE.Color(
-    CONFIG.colors.background
-  );
-
-  scene.fog = new THREE.Fog(
-    CONFIG.fog.color,
-    CONFIG.fog.near,
-    CONFIG.fog.far
-  );
-}
-
-// -----------------------------------------------------------------------------
-// Camera
-// -----------------------------------------------------------------------------
-
-function createCamera() {
-  camera = new THREE.PerspectiveCamera(
-    CONFIG.camera.fov,
-    window.innerWidth / window.innerHeight,
-    CONFIG.camera.near,
-    CONFIG.camera.far
-  );
-
-  camera.position.set(
-    CONFIG.camera.position.x,
-    CONFIG.camera.position.y,
-    CONFIG.camera.position.z
-  );
-
-  camera.lookAt(0, 0, 0);
-}
-
-// -----------------------------------------------------------------------------
-// Lighting
-// -----------------------------------------------------------------------------
-
-function createLights() {
-  const ambient = new THREE.HemisphereLight(
-    0x9ba7a2,
-    0x111411,
-    1.25
-  );
-
-  scene.add(ambient);
-
-  const directional = new THREE.DirectionalLight(
-    0xffffff,
-    2.5
-  );
-
-  directional.position.set(
-    -60,
-    100,
-    -80
-  );
-
-  directional.castShadow = true;
-
-  directional.shadow.mapSize.width = 2048;
-  directional.shadow.mapSize.height = 2048;
-
-  directional.shadow.camera.near = 1;
-  directional.shadow.camera.far = 400;
-
-  directional.shadow.camera.left = -150;
-  directional.shadow.camera.right = 150;
-  directional.shadow.camera.top = 150;
-  directional.shadow.camera.bottom = -150;
-
-  scene.add(directional);
-}
-
-// -----------------------------------------------------------------------------
-// Controls
-// -----------------------------------------------------------------------------
-
-function createControls() {
-  controls = new OrbitControls(
-    camera,
-    renderer.domElement
-  );
-
-  controls.enableDamping = true;
-  controls.dampingFactor = 0.06;
-
-  controls.enablePan = true;
-
-  controls.minDistance = 20;
-  controls.maxDistance = 350;
-
-  controls.maxPolarAngle = Math.PI * 0.49;
-
-  controls.target.set(0, 5, 0);
-
-  controls.update();
-}
-
-// -----------------------------------------------------------------------------
-// Terrain
-// -----------------------------------------------------------------------------
-
-function createTerrain() {
-  const {
-    width,
-    depth,
-    segments,
-  } = CONFIG.terrain;
-
-  terrainGeometry = new THREE.PlaneGeometry(
-    width,
-    depth,
-    segments,
-    segments
-  );
-
-  // Rotate horizontal.
-  terrainGeometry.rotateX(-Math.PI / 2);
-
-  generateTerrainHeight();
-
-  generateTerrainColors();
-
-  terrainMaterial = new THREE.MeshStandardMaterial({
-    vertexColors: true,
-
-    wireframe: CONFIG.terrain.wireframe,
-
-    roughness: 1,
-    metalness: 0,
-
-    flatShading: false,
-  });
-
-  terrain = new THREE.Mesh(
-    terrainGeometry,
-    terrainMaterial
-  );
-
-  terrain.receiveShadow = true;
-  terrain.castShadow = true;
-
-  scene.add(terrain);
-}
-
-// -----------------------------------------------------------------------------
-// Terrain Height Generation
-// -----------------------------------------------------------------------------
-
-function generateTerrainHeight() {
-  const position =
-    terrainGeometry.attributes.position;
-
-  const {
-    width,
-    depth,
-    height,
-    frequency,
-    detailFrequency,
-    microFrequency,
-    detailStrength,
-    microStrength,
-    valleyStrength,
-  } = CONFIG.terrain;
-
-  for (let i = 0; i < position.count; i++) {
-    const x = position.getX(i);
-    const z = position.getZ(i);
-
-    /*
-    --------------------------------------------------------------------------
-    Base terrain
-    --------------------------------------------------------------------------
-
-    Multiple sine/cosine fields are used here as a lightweight deterministic
-    noise approximation.
-
-    Later this function can be replaced by:
-
-      - Simplex noise
-      - Perlin noise
-      - OpenSimplex
-      - DEM raster data
-      - Mapbox terrain tiles
-      - GeoTIFF elevation data
-      - USGS elevation data
-    */
-
-    const nx = x * frequency;
-    const nz = z * frequency;
-
-    const base =
-      Math.sin(nx * 1.7) *
-      Math.cos(nz * 1.3);
-
-    const secondary =
-      Math.sin(
-        nx * 3.7 +
-        Math.cos(nz * 2.1)
-      ) *
-      Math.cos(
-        nz * 2.8
-      );
-
-    const tertiary =
-      Math.sin(
-        x * detailFrequency
-      ) *
-      Math.cos(
-        z * detailFrequency * 0.8
-      );
-
-    const micro =
-      Math.sin(
-        x * microFrequency +
-        Math.cos(z * 0.13)
-      ) *
-      Math.cos(
-        z * microFrequency
-      );
-
-    /*
-    --------------------------------------------------------------------------
-    Mountain shaping
-    --------------------------------------------------------------------------
-    */
-
-    const radialDistance =
-      Math.sqrt(
-        (x / (width * 0.5)) ** 2 +
-        (z / (depth * 0.5)) ** 2
-      );
-
-    // Creates broader mountainous forms.
-    const mountainMask =
-      Math.max(
-        0,
-        1 - radialDistance * 0.65
-      );
-
-    // Creates valleys between larger formations.
-    const valley =
-      Math.abs(
-        Math.sin(x * 0.055) *
-        Math.cos(z * 0.047)
-      );
-
-    let elevation =
-      base * 0.45 +
-      secondary * detailStrength +
-      tertiary * 0.25 +
-      micro * microStrength;
-
-    elevation *= mountainMask;
-
-    elevation +=
-      valley *
-      valleyStrength *
-      mountainMask;
-
-    /*
-    --------------------------------------------------------------------------
-    Ridge shaping
-    --------------------------------------------------------------------------
-    */
-
-    const ridge =
-      1 -
-      Math.abs(
-        Math.sin(
-          x * 0.035
-        )
-      );
-
-    elevation +=
-      ridge *
-      0.18 *
-      mountainMask;
-
-    /*
-    --------------------------------------------------------------------------
-    Normalize
-    --------------------------------------------------------------------------
-    */
-
-    elevation =
-      (elevation + 1) * 0.5;
-
-    // Clamp.
-    elevation =
-      THREE.MathUtils.clamp(
-        elevation,
-        0,
-        1
-      );
-
-    // Increase mountain contrast.
-    elevation =
-      Math.pow(
-        elevation,
-        1.65
-      );
-
-    const y =
-      elevation * height;
-
-    position.setY(i, y);
-  }
-
-  position.needsUpdate = true;
-
-  terrainGeometry.computeVertexNormals();
-}
-
-// -----------------------------------------------------------------------------
-// Terrain Colors
-// -----------------------------------------------------------------------------
-
-function generateTerrainColors() {
-  const position =
-    terrainGeometry.attributes.position;
-
-  const colors =
-    new Float32Array(
-      position.count * 3
-    );
-
-  const color =
-    new THREE.Color();
-
-  const {
-    deep,
-    low,
-    mid,
-    high,
-    peak,
-    snow,
-  } = CONFIG.colors;
-
-  const maxHeight =
-    CONFIG.terrain.height;
-
-  for (let i = 0; i < position.count; i++) {
-    const y =
-      position.getY(i);
-
-    const elevation =
-      THREE.MathUtils.clamp(
-        y / maxHeight,
-        0,
-        1
-      );
-
-    /*
-    --------------------------------------------------------------------------
-    Elevation palette
-    --------------------------------------------------------------------------
-    */
-
-    if (elevation < 0.18) {
-      color.copy(deep);
-    }
-
-    else if (elevation < 0.38) {
-      color.lerpColors(
-        deep,
-        low,
-        (elevation - 0.18) / 0.20
-      );
-    }
-
-    else if (elevation < 0.60) {
-      color.lerpColors(
-        low,
-        mid,
-        (elevation - 0.38) / 0.22
-      );
-    }
-
-    else if (elevation < 0.78) {
-      color.lerpColors(
-        mid,
-        high,
-        (elevation - 0.60) / 0.18
-      );
-    }
-
-    else if (elevation < 0.91) {
-      color.lerpColors(
-        high,
-        peak,
-        (elevation - 0.78) / 0.13
-      );
-    }
-
-    else {
-      color.lerpColors(
-        peak,
-        snow,
-        (elevation - 0.91) / 0.09
-      );
-    }
-
-    colors[i * 3] =
-      color.r;
-
-    colors[i * 3 + 1] =
-      color.g;
-
-    colors[i * 3 + 2] =
-      color.b;
-  }
-
-  terrainGeometry.setAttribute(
-    "color",
-    new THREE.BufferAttribute(
-      colors,
-      3
-    )
-  );
-}
-
-// -----------------------------------------------------------------------------
-// Animation
-// -----------------------------------------------------------------------------
-
-function animate() {
-  requestAnimationFrame(animate);
-
-  const delta =
-    clock.getDelta();
-
-  update(delta);
-
-  renderer.render(
-    scene,
-    camera
-  );
-}
-
-// -----------------------------------------------------------------------------
-// Update
-// -----------------------------------------------------------------------------
-
-function update(delta) {
-  if (controls) {
-    controls.update();
-  }
-
-  /*
-  --------------------------------------------------------------------------
-  Optional terrain movement
-  --------------------------------------------------------------------------
-
-  The original CodePen rotated the entire terrain.
-
-  We don't do that by default because an interactive terrain viewer is more
-  useful when the camera moves around the landscape.
-
-  If we want the original effect:
-
-      terrain.rotation.z += delta * 0.2;
-  */
-}
-
-// -----------------------------------------------------------------------------
-// Resize
-// -----------------------------------------------------------------------------
-
-function handleResize() {
-  camera.aspect =
-    window.innerWidth /
-    window.innerHeight;
-
-  camera.updateProjectionMatrix();
-
-  renderer.setSize(
-    window.innerWidth,
-    window.innerHeight
-  );
 
   renderer.setPixelRatio(
     Math.min(
@@ -665,15 +398,1447 @@ function handleResize() {
       2
     )
   );
+
+
+  renderer.setSize(
+    window.innerWidth,
+    window.innerHeight
+  );
+
+
+  renderer.setClearColor(
+    0x080b0c,
+    1
+  );
+
+
+  renderer.outputColorSpace =
+    THREE.SRGBColorSpace;
+
+
+  renderer.shadowMap.enabled =
+    true;
+
+
+  renderer.shadowMap.type =
+    THREE.PCFSoftShadowMap;
+
+
+  const viewport =
+    document.getElementById(
+      "terrain-viewer"
+    );
+
+
+  viewport.appendChild(
+    renderer.domElement
+  );
+
 }
 
-// -----------------------------------------------------------------------------
-// Public API
-// -----------------------------------------------------------------------------
 
-export {
-  scene,
-  camera,
-  terrain,
-  renderer,
+// ============================================================================
+// SCENE
+// ============================================================================
+
+function createScene() {
+
+  scene =
+    new THREE.Scene();
+
+
+  scene.background =
+    new THREE.Color(
+      0x080b0c
+    );
+
+
+  scene.fog =
+    new THREE.Fog(
+      0x080b0c,
+      CONFIG.fog.near,
+      CONFIG.fog.far
+    );
+
+}
+
+
+// ============================================================================
+// CAMERA
+// ============================================================================
+
+function createCamera() {
+
+  camera =
+    new THREE.PerspectiveCamera(
+
+      CONFIG.camera.fov,
+
+      window.innerWidth /
+        window.innerHeight,
+
+      CONFIG.camera.near,
+
+      CONFIG.camera.far
+
+    );
+
+
+  camera.position.set(
+
+    CONFIG.camera.position.x,
+
+    CONFIG.camera.position.y,
+
+    CONFIG.camera.position.z
+
+  );
+
+
+  camera.lookAt(
+    0,
+    5,
+    0
+  );
+
+}
+
+
+// ============================================================================
+// LIGHTING
+// ============================================================================
+
+function createLights() {
+
+  const hemisphere =
+    new THREE.HemisphereLight(
+
+      0xb6c1bb,
+
+      0x111413,
+
+      1.2
+
+    );
+
+
+  scene.add(
+    hemisphere
+  );
+
+
+  const ambient =
+    new THREE.AmbientLight(
+
+      0x303633,
+
+      0.55
+
+    );
+
+
+  scene.add(
+    ambient
+  );
+
+
+  const sun =
+    new THREE.DirectionalLight(
+
+      0xffffff,
+
+      2.7
+
+    );
+
+
+  sun.position.set(
+
+    -70,
+    110,
+    -80
+
+  );
+
+
+  sun.castShadow =
+    true;
+
+
+  sun.shadow.mapSize.width =
+    2048;
+
+
+  sun.shadow.mapSize.height =
+    2048;
+
+
+  sun.shadow.camera.near =
+    1;
+
+
+  sun.shadow.camera.far =
+    400;
+
+
+  sun.shadow.camera.left =
+    -150;
+
+
+  sun.shadow.camera.right =
+    150;
+
+
+  sun.shadow.camera.top =
+    150;
+
+
+  sun.shadow.camera.bottom =
+    -150;
+
+
+  scene.add(
+    sun
+  );
+
+}
+
+
+// ============================================================================
+// CONTROLS
+// ============================================================================
+
+function createControls() {
+
+  controls =
+    new OrbitControls(
+
+      camera,
+
+      renderer.domElement
+
+    );
+
+
+  controls.enableDamping =
+    true;
+
+
+  controls.dampingFactor =
+    0.055;
+
+
+  controls.enablePan =
+    true;
+
+
+  controls.minDistance =
+    18;
+
+
+  controls.maxDistance =
+    320;
+
+
+  controls.maxPolarAngle =
+    Math.PI * 0.49;
+
+
+  controls.target.set(
+    0,
+    6,
+    0
+  );
+
+
+  controls.update();
+
+}
+
+
+// ============================================================================
+// CREATE TERRAIN
+// ============================================================================
+
+function createTerrain(
+  environmentName
+) {
+
+  const environment =
+    ENVIRONMENTS[
+      environmentName
+    ];
+
+
+  if (!environment) {
+    return;
+  }
+
+
+  terrainGenerationId++;
+
+
+  const generationId =
+    terrainGenerationId;
+
+
+  // ------------------------------------------------------------
+  // Remove existing terrain
+  // ------------------------------------------------------------
+
+  if (terrain) {
+
+    scene.remove(
+      terrain
+    );
+
+
+    terrain.geometry.dispose();
+
+    terrain.material.dispose();
+
+  }
+
+
+  // ------------------------------------------------------------
+  // Geometry
+  // ------------------------------------------------------------
+
+  terrainGeometry =
+    new THREE.PlaneGeometry(
+
+      CONFIG.terrain.width,
+
+      CONFIG.terrain.depth,
+
+      CONFIG.terrain.segments,
+
+      CONFIG.terrain.segments
+
+    );
+
+
+  terrainGeometry.rotateX(
+    -Math.PI / 2
+  );
+
+
+  // ------------------------------------------------------------
+  // Elevation
+  // ------------------------------------------------------------
+
+  generateElevation(
+    terrainGeometry,
+    environment
+  );
+
+
+  // ------------------------------------------------------------
+  // Colors
+  // ------------------------------------------------------------
+
+  generateColors(
+    terrainGeometry,
+    environment
+  );
+
+
+  // ------------------------------------------------------------
+  // Material
+  // ------------------------------------------------------------
+
+  terrainMaterial =
+    new THREE.MeshStandardMaterial({
+
+      vertexColors: true,
+
+      wireframe:
+        CONFIG.terrain.wireframe,
+
+      roughness: 1,
+
+      metalness: 0
+
+    });
+
+
+  // ------------------------------------------------------------
+  // Mesh
+  // ------------------------------------------------------------
+
+  terrain =
+    new THREE.Mesh(
+
+      terrainGeometry,
+
+      terrainMaterial
+
+    );
+
+
+  terrain.castShadow =
+    true;
+
+
+  terrain.receiveShadow =
+    true;
+
+
+  scene.add(
+    terrain
+  );
+
+
+  currentEnvironment =
+    environmentName;
+
+
+  // ------------------------------------------------------------
+  // Small visual transition
+  // ------------------------------------------------------------
+
+  terrain.scale.set(
+    0.92,
+    0.92,
+    0.92
+  );
+
+
+  requestAnimationFrame(
+    () => {
+
+      if (
+        generationId !==
+        terrainGenerationId
+      ) {
+        return;
+      }
+
+
+      terrain.scale.set(
+        1,
+        1,
+        1
+      );
+
+    }
+  );
+
+}
+
+
+// ============================================================================
+// ELEVATION GENERATOR
+// ============================================================================
+
+function generateElevation(
+  geometry,
+  environment
+) {
+
+  const position =
+    geometry.attributes.position;
+
+
+  const width =
+    CONFIG.terrain.width;
+
+
+  const depth =
+    CONFIG.terrain.depth;
+
+
+  for (
+    let i = 0;
+    i < position.count;
+    i++
+  ) {
+
+    const x =
+      position.getX(i);
+
+
+    const z =
+      position.getZ(i);
+
+
+    // ----------------------------------------------------------
+    // Base terrain
+    // ----------------------------------------------------------
+
+    const base =
+      Math.sin(
+        x *
+        environment.frequency *
+        1.7
+      ) *
+      Math.cos(
+        z *
+        environment.frequency *
+        1.3
+      );
+
+
+    // ----------------------------------------------------------
+    // Secondary terrain
+    // ----------------------------------------------------------
+
+    const secondary =
+      Math.sin(
+
+        x *
+        environment.detailFrequency *
+        3.7 +
+
+        Math.cos(
+          z *
+          environment.detailFrequency *
+          2.1
+        )
+
+      ) *
+      Math.cos(
+
+        z *
+        environment.detailFrequency *
+        2.8
+
+      );
+
+
+    // ----------------------------------------------------------
+    // Broad terrain variation
+    // ----------------------------------------------------------
+
+    const tertiary =
+      Math.sin(
+        x *
+        environment.detailFrequency
+      ) *
+      Math.cos(
+        z *
+        environment.detailFrequency *
+        0.8
+      );
+
+
+    // ----------------------------------------------------------
+    // Small terrain detail
+    // ----------------------------------------------------------
+
+    const micro =
+      Math.sin(
+
+        x *
+        environment.microFrequency +
+
+        Math.cos(
+          z * 0.13
+        )
+
+      ) *
+      Math.cos(
+
+        z *
+        environment.microFrequency
+
+      );
+
+
+    // ----------------------------------------------------------
+    // Broad landscape mask
+    // ----------------------------------------------------------
+
+    const radialDistance =
+      Math.sqrt(
+
+        Math.pow(
+          x /
+          (width * 0.5),
+          2
+        ) +
+
+        Math.pow(
+          z /
+          (depth * 0.5),
+          2
+        )
+
+      );
+
+
+    const mask =
+      Math.max(
+
+        0,
+
+        1 -
+        radialDistance *
+        environment.maskStrength
+
+      );
+
+
+    // ----------------------------------------------------------
+    // Valley structure
+    // ----------------------------------------------------------
+
+    const valley =
+      Math.abs(
+
+        Math.sin(
+          x * 0.055
+        ) *
+
+        Math.cos(
+          z * 0.047
+        )
+
+      );
+
+
+    // ----------------------------------------------------------
+    // Primary elevation
+    // ----------------------------------------------------------
+
+    let elevation =
+
+      base * 0.45 +
+
+      secondary *
+      environment.detailStrength +
+
+      tertiary * 0.25 +
+
+      micro *
+      environment.microStrength;
+
+
+    elevation *=
+      mask;
+
+
+    elevation +=
+
+      valley *
+
+      environment.valleyStrength *
+
+      mask;
+
+
+    // ----------------------------------------------------------
+    // Ridge generation
+    // ----------------------------------------------------------
+
+    const ridge =
+
+      1 -
+
+      Math.abs(
+
+        Math.sin(
+          x * 0.035
+        )
+
+      );
+
+
+    elevation +=
+
+      ridge *
+
+      environment.ridgeStrength *
+
+      mask;
+
+
+    // ----------------------------------------------------------
+    // Environment-specific terrain
+    // ----------------------------------------------------------
+
+    switch (
+      currentEnvironment
+    ) {
+
+      case "mountains":
+
+        elevation +=
+          createMountainPeaks(
+            x,
+            z
+          ) *
+          0.30;
+
+        break;
+
+
+      case "valley":
+
+        elevation -=
+          createValleyFloor(
+            x,
+            z
+          ) *
+          0.35;
+
+        break;
+
+
+      case "desert":
+
+        elevation +=
+          createDunes(
+            x,
+            z
+          ) *
+          0.22;
+
+        break;
+
+
+      case "plateau":
+
+        elevation =
+          createPlateau(
+            elevation
+          );
+
+        break;
+
+
+      case "coastal":
+
+        elevation =
+          createCoastline(
+            x,
+            z,
+            elevation
+          );
+
+        break;
+
+
+      case "volcanic":
+
+        elevation =
+          createVolcanicTerrain(
+            x,
+            z,
+            elevation
+          );
+
+        break;
+
+    }
+
+
+    // ----------------------------------------------------------
+    // Normalize
+    // ----------------------------------------------------------
+
+    elevation =
+      (elevation + 1) *
+      0.5;
+
+
+    elevation =
+      THREE.MathUtils.clamp(
+        elevation,
+        0,
+        1
+      );
+
+
+    // ----------------------------------------------------------
+    // Elevation curve
+    // ----------------------------------------------------------
+
+    elevation =
+      Math.pow(
+        elevation,
+        environment.exponent
+      );
+
+
+    const y =
+      elevation *
+      environment.height;
+
+
+    position.setY(
+      i,
+      y
+    );
+
+  }
+
+
+  position.needsUpdate =
+    true;
+
+
+  geometry.computeVertexNormals();
+
+}
+
+
+// ============================================================================
+// MOUNTAIN PEAKS
+// ============================================================================
+
+function createMountainPeaks(
+  x,
+  z
+) {
+
+  const peak1 =
+    Math.exp(
+      -(
+        Math.pow(
+          x - 35,
+          2
+        ) +
+        Math.pow(
+          z + 15,
+          2
+        )
+      ) /
+      1200
+    );
+
+
+  const peak2 =
+    Math.exp(
+      -(
+        Math.pow(
+          x + 30,
+          2
+        ) +
+        Math.pow(
+          z - 20,
+          2
+        )
+      ) /
+      1700
+    );
+
+
+  const peak3 =
+    Math.exp(
+      -(
+        Math.pow(
+          x - 5,
+          2
+        ) +
+        Math.pow(
+          z - 45,
+          2
+        )
+      ) /
+      900
+    );
+
+
+  return (
+    peak1 +
+    peak2 +
+    peak3
+  );
+
+}
+
+
+// ============================================================================
+// VALLEY FLOOR
+// ============================================================================
+
+function createValleyFloor(
+  x,
+  z
+) {
+
+  const valley =
+    Math.sin(
+      x * 0.025
+    ) *
+    Math.cos(
+      z * 0.035
+    );
+
+
+  return Math.abs(
+    valley
+  );
+
+}
+
+
+// ============================================================================
+// DESERT DUNES
+// ============================================================================
+
+function createDunes(
+  x,
+  z
+) {
+
+  return (
+
+    Math.sin(
+      x * 0.075 +
+      Math.sin(z * 0.025)
+    ) *
+
+    Math.cos(
+      z * 0.045
+    )
+
+  );
+
+}
+
+
+// ============================================================================
+// PLATEAU
+// ============================================================================
+
+function createPlateau(
+  elevation
+) {
+
+  const threshold =
+    0.58;
+
+
+  if (
+    elevation >
+    threshold
+  ) {
+
+    const compression =
+      (elevation - threshold) *
+      0.25;
+
+
+    return (
+      threshold +
+      compression
+    );
+
+  }
+
+
+  return elevation;
+
+}
+
+
+// ============================================================================
+// COASTLINE
+// ============================================================================
+
+function createCoastline(
+  x,
+  z,
+  elevation
+) {
+
+  const coast =
+    Math.sin(
+      x * 0.025
+    ) *
+    0.15;
+
+
+  return (
+    elevation +
+    coast
+  );
+
+}
+
+
+// ============================================================================
+// VOLCANIC TERRAIN
+// ============================================================================
+
+function createVolcanicTerrain(
+  x,
+  z,
+  elevation
+) {
+
+  const radius =
+    Math.sqrt(
+      x * x +
+      z * z
+    );
+
+
+  const volcano =
+    Math.max(
+      0,
+      1 -
+      radius / 65
+    );
+
+
+  const crater =
+    Math.exp(
+      -Math.pow(
+        radius - 25,
+        2
+      ) /
+      80
+    );
+
+
+  return (
+
+    elevation +
+
+    volcano *
+    0.55 -
+
+    crater *
+    0.35
+
+  );
+
+}
+
+
+// ============================================================================
+// TERRAIN COLORS
+// ============================================================================
+
+function generateColors(
+  geometry,
+  environment
+) {
+
+  const position =
+    geometry.attributes.position;
+
+
+  const colors =
+    new Float32Array(
+      position.count * 3
+    );
+
+
+  const palette =
+    environment.colors.map(
+      color =>
+        new THREE.Color(
+          color
+        )
+    );
+
+
+  const color =
+    new THREE.Color();
+
+
+  for (
+    let i = 0;
+    i < position.count;
+    i++
+  ) {
+
+    const elevation =
+      THREE.MathUtils.clamp(
+
+        position.getY(i) /
+        environment.height,
+
+        0,
+        1
+
+      );
+
+
+    const scaled =
+      elevation *
+      (palette.length - 1);
+
+
+    const lower =
+      Math.floor(
+        scaled
+      );
+
+
+    const upper =
+      Math.min(
+        lower + 1,
+        palette.length - 1
+      );
+
+
+    const amount =
+      scaled -
+      lower;
+
+
+    color.lerpColors(
+
+      palette[lower],
+
+      palette[upper],
+
+      amount
+
+    );
+
+
+    colors[i * 3] =
+      color.r;
+
+
+    colors[i * 3 + 1] =
+      color.g;
+
+
+    colors[i * 3 + 2] =
+      color.b;
+
+  }
+
+
+  geometry.setAttribute(
+
+    "color",
+
+    new THREE.BufferAttribute(
+      colors,
+      3
+    )
+
+  );
+
+}
+
+
+// ============================================================================
+// ENVIRONMENT SWITCHER
+// ============================================================================
+
+function bindEnvironmentSwitcher() {
+
+  const buttons =
+    document.querySelectorAll(
+      "[data-environment]"
+    );
+
+
+  buttons.forEach(
+    button => {
+
+      button.addEventListener(
+        "click",
+        () => {
+
+          const environment =
+            button.dataset.environment;
+
+
+          if (
+            environment ===
+            currentEnvironment
+          ) {
+            return;
+          }
+
+
+          showLoading();
+
+
+          // Set before generation so environment-specific
+          // terrain functions use the correct environment.
+          currentEnvironment =
+            environment;
+
+
+          setTimeout(
+            () => {
+
+              createTerrain(
+                environment
+              );
+
+
+              updateUI(
+                environment
+              );
+
+
+              hideLoading();
+
+            },
+            30
+          );
+
+        }
+      );
+
+    }
+  );
+
+}
+
+
+// ============================================================================
+// UI
+// ============================================================================
+
+function updateUI(
+  environmentName
+) {
+
+  const environment =
+    ENVIRONMENTS[
+      environmentName
+    ];
+
+
+  if (!environment) {
+    return;
+  }
+
+
+  const title =
+    document.getElementById(
+      "environment-title"
+    );
+
+
+  const terrainType =
+    document.getElementById(
+      "terrain-type"
+    );
+
+
+  const panelIndex =
+    document.querySelector(
+      ".panel-index"
+    );
+
+
+  if (title) {
+
+    title.textContent =
+      environment.title;
+
+  }
+
+
+  if (terrainType) {
+
+    terrainType.textContent =
+      environment.mode;
+
+  }
+
+
+  if (panelIndex) {
+
+    panelIndex.textContent =
+      environment.index;
+
+  }
+
+
+  const buttons =
+    document.querySelectorAll(
+      "[data-environment]"
+    );
+
+
+  buttons.forEach(
+    button => {
+
+      button.classList.toggle(
+
+        "active",
+
+        button.dataset.environment ===
+        environmentName
+
+      );
+
+    }
+  );
+
+}
+
+
+// ============================================================================
+// LOADING
+// ============================================================================
+
+function showLoading() {
+
+  const loading =
+    document.getElementById(
+      "loading"
+    );
+
+
+  if (loading) {
+
+    loading.style.opacity =
+      "1";
+
+    loading.style.pointerEvents =
+      "auto";
+
+  }
+
+}
+
+
+// ============================================================================
+// HIDE LOADING
+// ============================================================================
+
+function hideLoading() {
+
+  const loading =
+    document.getElementById(
+      "loading"
+    );
+
+
+  if (!loading) {
+    return;
+  }
+
+
+  loading.style.opacity =
+    "0";
+
+
+  loading.style.pointerEvents =
+    "none";
+
+}
+
+
+// ============================================================================
+// RESIZE
+// ============================================================================
+
+function handleResize() {
+
+  camera.aspect =
+    window.innerWidth /
+    window.innerHeight;
+
+
+  camera.updateProjectionMatrix();
+
+
+  renderer.setSize(
+
+    window.innerWidth,
+
+    window.innerHeight
+
+  );
+
+
+  renderer.setPixelRatio(
+
+    Math.min(
+
+      window.devicePixelRatio || 1,
+
+      2
+
+    )
+
+  );
+
+}
+
+
+// ============================================================================
+// ANIMATION
+// ============================================================================
+
+function animate() {
+
+  requestAnimationFrame(
+    animate
+  );
+
+
+  if (controls) {
+
+    controls.update();
+
+  }
+
+
+  renderer.render(
+
+    scene,
+
+    camera
+
+  );
+
+}
+
+
+// ============================================================================
+// PUBLIC API
+// ============================================================================
+
+window.AtlasTerrain = {
+
+  setEnvironment(
+    environment
+  ) {
+
+    if (
+      ENVIRONMENTS[
+        environment
+      ]
+    ) {
+
+      currentEnvironment =
+        environment;
+
+      createTerrain(
+        environment
+      );
+
+      updateUI(
+        environment
+      );
+
+    }
+
+  },
+
+
+  getEnvironment() {
+
+    return currentEnvironment;
+
+  },
+
+
+  getEnvironments() {
+
+    return Object.keys(
+      ENVIRONMENTS
+    );
+
+  }
+
 };
+
