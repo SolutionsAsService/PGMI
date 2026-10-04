@@ -1,0 +1,153 @@
+.reference-library {
+  margin-top: 18px;
+  padding-top: 15px;
+  border-top: 1px solid rgba(220, 230, 224, .1);
+}
+
+.reference-library-heading {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin: 0 2px 10px;
+}
+
+.reference-count {
+  color: rgba(220, 230, 224, .38);
+  font-size: 7px;
+  font-weight: 700;
+  letter-spacing: .1em;
+}
+
+.reference-search-label,
+.reference-picker-label {
+  display: block;
+  margin: 9px 2px 5px;
+  color: rgba(220, 230, 224, .48);
+  font-size: 8px;
+  font-weight: 600;
+  letter-spacing: .08em;
+  text-transform: uppercase;
+}
+
+.reference-search,
+.reference-picker {
+  width: 100%;
+  border: 1px solid rgba(220, 230, 224, .12);
+  border-radius: 5px;
+  background: rgba(6, 10, 11, .75);
+  color: rgba(232, 239, 234, .85);
+  font: inherit;
+  font-size: 10px;
+}
+
+.reference-search {
+  height: 34px;
+  padding: 0 10px;
+}
+
+.reference-search::placeholder {
+  color: rgba(220, 230, 224, .28);
+}
+
+.reference-picker {
+  height: 34px;
+  padding: 0 8px;
+}
+
+.reference-picker option,
+.reference-picker optgroup {
+  padding: 5px;
+  background: #101719;
+  color: #d4dfd9;
+}
+
+.reference-picker optgroup {
+  color: #9eaFA8;
+  font-size: 9px;
+  font-weight: 600;
+}
+
+.reference-data-note {
+  margin: 8px 2px 0;
+  color: rgba(220, 230, 224, .38);
+  font-size: 8px;
+  line-height: 1.55;
+}
+
+.reference-detail {
+  margin-top: 11px;
+  padding: 11px;
+  border: 1px solid rgba(220, 230, 224, .11);
+  border-radius: 5px;
+  background: rgba(17, 26, 27, .76);
+}
+
+.reference-detail[hidden] {
+  display: none;
+}
+
+.reference-detail-type {
+  color: #9bb5a4;
+  font-size: 7px;
+  font-weight: 700;
+  letter-spacing: .11em;
+}
+
+.reference-detail h2 {
+  margin: 7px 0 5px;
+  color: #e0e8e2;
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.reference-detail p {
+  margin: 5px 0 0;
+  color: rgba(220, 230, 224, .58);
+  font-size: 8px;
+  line-height: 1.55;
+}
+
+.reference-detail .reference-facts {
+  white-space: pre-line;
+  color: rgba(220, 230, 224, .77);
+  overflow-wrap: anywhere;
+}
+
+.reference-sources {
+  display: grid;
+  gap: 5px;
+  margin-top: 10px;
+  padding-top: 8px;
+  border-top: 1px solid rgba(220, 230, 224, .09);
+}
+
+.reference-sources-heading {
+  color: rgba(220, 230, 224, .38);
+  font-size: 7px;
+  font-weight: 700;
+  letter-spacing: .1em;
+}
+
+.reference-sources a {
+  color: #a9c5b4;
+  font-size: 8px;
+  line-height: 1.45;
+  text-decoration: none;
+}
+
+.reference-sources a:hover {
+  color: #e0e8e2;
+  text-decoration: underline;
+}
+
+.reference-picker:focus-visible,
+.reference-search:focus-visible {
+  outline: 1px solid rgba(179, 207, 186, .72);
+  outline-offset: 2px;
+}
+
+@media (max-width: 800px) {
+  .reference-picker {
+    max-height: 160px;
+  }
+}

@@ -1,6 +1,14 @@
 
 import * as THREE from "three";
 import { OrbitControls } from "three/addons/controls/OrbitControls.js";
+import {
+  buildEnvironmentCatalog,
+  createMountainRangeStudy,
+  createTerrainFeatureStudy,
+  listMountainRanges,
+  listTerrainFeatures,
+  loadTerrainDataset
+} from "./sdk/atlas-terrain.js";
 
 /*
 |--------------------------------------------------------------------------
@@ -352,6 +360,10 @@ let terrainGenerationId = 0;
 let ENVIRONMENTS =
   DEFAULT_ENVIRONMENTS;
 
+let terrainDataset = null;
+
+let activeReference = null;
+
 let autoRotate = true;
 
 let wireframe =
@@ -404,11 +416,15 @@ async function init() {
 
   buildEnvironmentList();
 
+  buildReferencePicker();
+
   createTerrain(
     currentEnvironment
   );
 
   bindEnvironmentSwitcher();
+
+  bindReferencePicker();
 
   bindViewerActions();
 
@@ -436,29 +452,15 @@ async function loadEnvironments() {
 
   try {
 
-    const response =
-      await fetch(
+    terrainDataset =
+      await loadTerrainDataset(
         CONFIG.dataUrl
       );
 
 
-    if (!response.ok) {
-
-      throw new Error(
-        "Failed to load terrain data: " +
-        response.status
-      );
-
-    }
-
-
-    const dataset =
-      await response.json();
-
-
     const environments =
       mapDatasetEnvironments(
-        dataset
+        terrainDataset
       );
 
 
@@ -492,6 +494,8 @@ async function loadEnvironments() {
 
     );
 
+    terrainDataset = null;
+
 
     return DEFAULT_ENVIRONMENTS;
 
@@ -507,147 +511,11 @@ async function loadEnvironments() {
 function mapDatasetEnvironments(
   dataset
 ) {
-
-  const source =
-    dataset &&
-    dataset.environments;
-
-
-  if (!source) {
-    return null;
-  }
-
-
-  const mapped =
-    {};
-
-
-  Object.keys(
-    source
-  ).forEach(
-
-    (key, position) => {
-
-      const entry =
-        source[key];
-
-
-      const generation =
-        entry.generation || {};
-
-
-      const visual =
-        entry.visual || {};
-
-
-      const fallback =
-        DEFAULT_ENVIRONMENTS[
-          key
-        ] || {};
-
-
-      mapped[key] = {
-
-        title:
-          entry.name ||
-          fallback.title ||
-          key,
-
-        index:
-          String(
-            position + 1
-          ).padStart(
-            2,
-            "0"
-          ),
-
-        mode:
-          entry.mode_label ||
-          fallback.mode ||
-          key.toUpperCase(),
-
-        description:
-          entry.description ||
-          fallback.description ||
-          "",
-
-        height:
-          generation.height_scale ??
-          fallback.height ??
-          20,
-
-        frequency:
-          generation.frequency ??
-          fallback.frequency ??
-          0.04,
-
-        detailFrequency:
-          (generation.frequency ??
-            fallback.frequency ??
-            0.04) * 2.2,
-
-        microFrequency:
-          (generation.frequency ??
-            fallback.frequency ??
-            0.04) * 5,
-
-        detailStrength:
-          generation.roughness ??
-          fallback.detailStrength ??
-          0.2,
-
-        microStrength:
-          fallback.microStrength ??
-          0.08,
-
-        valleyStrength:
-          generation.valley_strength ??
-          fallback.valleyStrength ??
-          0.3,
-
-        ridgeStrength:
-          generation.ridge_strength ??
-          fallback.ridgeStrength ??
-          0.2,
-
-        maskStrength:
-          generation.radial_falloff ??
-          fallback.maskStrength ??
-          0.5,
-
-        exponent:
-          generation.peak_sharpness ??
-          fallback.exponent ??
-          1.4,
-
-        wireframe:
-          visual.wireframe ??
-          fallback.wireframe ??
-          CONFIG.terrain.wireframe,
-
-        colors:
-          (
-            Array.isArray(
-              visual.palette
-            ) &&
-            visual.palette.length > 0
-          )
-            ? visual.palette
-            : (
-              fallback.colors ||
-              DEFAULT_ENVIRONMENTS
-                .mountains.colors
-            )
-
-      };
-
-    }
-
+  return buildEnvironmentCatalog(
+    dataset,
+    DEFAULT_ENVIRONMENTS,
+    CONFIG.terrain
   );
-
-
-  return mapped;
-
 }
 
 
@@ -828,6 +696,197 @@ function buildEnvironmentList() {
 
   );
 
+}
+
+
+function buildReferencePicker(query = "") {
+
+  const picker =
+    document.getElementById("reference-picker");
+
+  const count =
+    document.getElementById("reference-count");
+
+  if (!picker) return;
+
+  const normalizedQuery =
+    query.trim().toLocaleLowerCase();
+
+  picker.replaceChildren();
+
+  const placeholder =
+    document.createElement("option");
+
+  placeholder.value = "";
+  placeholder.textContent = terrainDataset
+    ? "Choose a mountain system or landmark"
+    : "Reference data unavailable";
+  picker.appendChild(placeholder);
+
+  if (!terrainDataset) {
+    picker.disabled = true;
+    if (count) count.textContent = "OFFLINE";
+    return;
+  }
+
+  picker.disabled = false;
+
+  const references = [
+    {
+      label: "Mountain systems",
+      items: listMountainRanges(terrainDataset).map(range => ({
+        value: `range:${range.id}`,
+        label: range.name,
+        search: `${range.name} ${range.region || ""} ${(range.countries || []).join(" ")} ${(range.tags || []).join(" ")}`,
+      })),
+    },
+    {
+      label: "Major peaks",
+      items: listTerrainFeatures(terrainDataset, "peaks").map(feature => ({
+        value: `peaks:${feature.id}`,
+        label: `${feature.name} · ${feature.elevation_m.toLocaleString()} m`,
+        search: `${feature.name} ${feature.country || ""} ${feature.type || ""}`,
+      })),
+    },
+    {
+      label: "Volcanoes",
+      items: listTerrainFeatures(terrainDataset, "volcanoes").map(feature => ({
+        value: `volcanoes:${feature.id}`,
+        label: `${feature.name} · ${feature.elevation_m.toLocaleString()} m`,
+        search: `${feature.name} ${feature.country || ""} ${feature.type || ""}`,
+      })),
+    },
+  ];
+
+  let resultCount = 0;
+
+  references.forEach(group => {
+    const items = group.items.filter(item => !normalizedQuery || item.search.toLocaleLowerCase().includes(normalizedQuery));
+    if (!items.length) return;
+
+    const optionGroup =
+      document.createElement("optgroup");
+
+    optionGroup.label = group.label;
+
+    items.forEach(item => {
+      const option = document.createElement("option");
+      option.value = item.value;
+      option.textContent = item.label;
+      if (`${activeReference?.collection || ""}:${activeReference?.id || ""}` === item.value) option.selected = true;
+      optionGroup.appendChild(option);
+      resultCount += 1;
+    });
+
+    picker.appendChild(optionGroup);
+  });
+
+  if (count) count.textContent = `${resultCount} REFERENCES`;
+}
+
+
+function updateReferenceDetails(study) {
+
+  const details =
+    document.getElementById("reference-detail");
+
+  if (!details) return;
+
+  const reference = study?.reference;
+
+  details.hidden = !reference;
+
+  if (!reference) return;
+
+  const title = document.getElementById("reference-title");
+  const type = document.getElementById("reference-type");
+  const description = document.getElementById("reference-description");
+  const facts = document.getElementById("reference-facts");
+  const sources = document.getElementById("reference-sources");
+
+  if (title) title.textContent = reference.name;
+  if (type) type.textContent = "PROCEDURAL REFERENCE STUDY";
+  if (description) description.textContent = study.description;
+
+  if (facts && reference.kind === "mountain-range") {
+    const peak = reference.highestPeak;
+    facts.textContent = [
+      reference.region,
+      reference.countries.join(" · "),
+      peak ? `${peak.name} · ${peak.elevation_m.toLocaleString()} m` : "Peak elevation unavailable",
+      reference.lengthKm ? `${reference.lengthKm.toLocaleString()} km system length` : "Length unavailable",
+      reference.tectonicContext,
+    ].filter(Boolean).join("\n");
+  } else if (facts) {
+    const coordinates = Number.isFinite(reference.latitude) && Number.isFinite(reference.longitude)
+      ? `${Math.abs(reference.latitude).toFixed(3)}°${reference.latitude < 0 ? "S" : "N"}, ${Math.abs(reference.longitude).toFixed(3)}°${reference.longitude < 0 ? "W" : "E"}`
+      : "Coordinates not supplied";
+    facts.textContent = [
+      reference.country,
+      `${reference.elevationM.toLocaleString()} m reference elevation`,
+      reference.featureType,
+      coordinates,
+    ].filter(Boolean).join("\n");
+  }
+
+  if (sources) {
+    sources.replaceChildren();
+    const heading = document.createElement("span");
+    heading.className = "reference-sources-heading";
+    heading.textContent = "DATA REFERENCES";
+    sources.appendChild(heading);
+    for (const source of terrainDataset?.sources || []) {
+      const sourceUrl = new URL(source.url);
+      if (sourceUrl.protocol !== "https:") continue;
+      const link = document.createElement("a");
+      link.href = sourceUrl.href;
+      link.target = "_blank";
+      link.rel = "noopener noreferrer";
+      link.textContent = source.name;
+      sources.appendChild(link);
+    }
+  }
+}
+
+
+function applyReferenceStudy(study) {
+
+  currentEnvironment = study.reference.environment;
+  activeReference = {
+    ...study.reference,
+    collection: study.reference.kind === "mountain-range" ? "range" : study.reference.kind === "volcano" ? "volcanoes" : "peaks",
+  };
+
+  const picker = document.getElementById("reference-picker");
+  if (picker && [...picker.options].some(option => option.value === `${activeReference.collection}:${activeReference.id}`)) {
+    picker.value = `${activeReference.collection}:${activeReference.id}`;
+  }
+
+  showLoading();
+
+  setTimeout(() => {
+    createTerrain(currentEnvironment, study);
+    updateUI(currentEnvironment, study);
+    hideLoading();
+  }, 30);
+}
+
+
+function bindReferencePicker() {
+
+  const search = document.getElementById("reference-search");
+  const picker = document.getElementById("reference-picker");
+
+  if (search) search.addEventListener("input", () => buildReferencePicker(search.value));
+
+  if (picker) picker.addEventListener("change", () => {
+    if (!terrainDataset || !picker.value) return;
+    const [collection, id] = picker.value.split(":");
+    const study = collection === "range"
+      ? createMountainRangeStudy(terrainDataset, id, ENVIRONMENTS)
+      : createTerrainFeatureStudy(terrainDataset, collection, id, ENVIRONMENTS);
+    applyReferenceStudy(study);
+  });
 }
 
 
@@ -1341,13 +1400,12 @@ function updateToggleButton(
 // ============================================================================
 
 function createTerrain(
-  environmentName
+  environmentName,
+  preset = null
 ) {
 
   const environment =
-    ENVIRONMENTS[
-      environmentName
-    ];
+    preset || ENVIRONMENTS[environmentName];
 
 
   if (!environment) {
@@ -2248,8 +2306,8 @@ function bindEnvironmentSwitcher() {
 
 
           if (
-            environment ===
-            currentEnvironment
+            environment === currentEnvironment &&
+            !activeReference
           ) {
             return;
           }
@@ -2263,6 +2321,8 @@ function bindEnvironmentSwitcher() {
           currentEnvironment =
             environment;
 
+          activeReference = null;
+
 
           setTimeout(
             () => {
@@ -2273,7 +2333,8 @@ function bindEnvironmentSwitcher() {
 
 
               updateUI(
-                environment
+                environment,
+                null
               );
 
 
@@ -2297,7 +2358,8 @@ function bindEnvironmentSwitcher() {
 // ============================================================================
 
 function updateUI(
-  environmentName
+  environmentName,
+  preset = null
 ) {
 
   const environment =
@@ -2322,6 +2384,9 @@ function updateUI(
       "terrain-type"
     );
 
+  const terrainMode =
+    document.getElementById("terrain-mode");
+
 
   const panelIndex =
     document.querySelector(
@@ -2332,7 +2397,7 @@ function updateUI(
   if (title) {
 
     title.textContent =
-      environment.title;
+      preset?.title || environment.title;
 
   }
 
@@ -2340,8 +2405,12 @@ function updateUI(
   if (terrainType) {
 
     terrainType.textContent =
-      environment.mode;
+      preset?.mode || environment.mode;
 
+  }
+
+  if (terrainMode) {
+    terrainMode.textContent = preset ? "REFERENCE PROFILE" : "PROCEDURAL";
   }
 
 
@@ -2373,6 +2442,8 @@ function updateUI(
 
     }
   );
+
+  updateReferenceDetails(preset);
 
 }
 
@@ -2568,6 +2639,8 @@ window.AtlasTerrain = {
       currentEnvironment =
         environment;
 
+      activeReference = null;
+
       createTerrain(
         environment
       );
@@ -2575,6 +2648,9 @@ window.AtlasTerrain = {
       updateUI(
         environment
       );
+
+      const picker = document.getElementById("reference-picker");
+      if (picker) picker.value = "";
 
     }
 
@@ -2594,7 +2670,55 @@ window.AtlasTerrain = {
       ENVIRONMENTS
     );
 
+  },
+
+
+  getMountainRanges() {
+    return terrainDataset ? listMountainRanges(terrainDataset) : [];
+  },
+
+
+  getTerrainFeatures(type) {
+    return terrainDataset ? listTerrainFeatures(terrainDataset, type) : [];
+  },
+
+
+  selectMountainRange(id) {
+    if (!terrainDataset) return false;
+    try {
+      applyReferenceStudy(createMountainRangeStudy(terrainDataset, id, ENVIRONMENTS));
+      return true;
+    } catch (error) {
+      console.warn("Atlas Terrain: mountain range could not be selected.", error);
+      return false;
+    }
+  },
+
+
+  selectTerrainFeature(type, id) {
+    if (!terrainDataset) return false;
+    try {
+      applyReferenceStudy(createTerrainFeatureStudy(terrainDataset, type, id, ENVIRONMENTS));
+      return true;
+    } catch (error) {
+      console.warn("Atlas Terrain: terrain feature could not be selected.", error);
+      return false;
+    }
+  },
+
+
+  getCurrentStudy() {
+    return activeReference ? {
+      ...activeReference,
+      countries: activeReference.countries ? [...activeReference.countries] : undefined,
+      tags: activeReference.tags ? [...activeReference.tags] : undefined,
+      highestPeak: activeReference.highestPeak ? { ...activeReference.highestPeak } : undefined,
+    } : {
+      kind: "environment",
+      id: currentEnvironment,
+      name: ENVIRONMENTS[currentEnvironment]?.title || currentEnvironment,
+      dataType: "procedural",
+    };
   }
 
 };
-

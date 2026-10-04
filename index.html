@@ -16,6 +16,7 @@
   <title>Atlas — Environmental Terrain</title>
 
   <link rel="stylesheet" href="./style.css">
+  <link rel="stylesheet" href="./reference-studies.css">
 </head>
 
 <body>
@@ -112,6 +113,27 @@
         class="environment-list"
         aria-live="polite"
       ></div>
+
+      <section class="reference-library" aria-label="Real-world terrain references">
+        <div class="reference-library-heading">
+          <span class="panel-eyebrow">REAL-WORLD STUDIES</span>
+          <span id="reference-count" class="reference-count">LOADING</span>
+        </div>
+        <label class="reference-search-label" for="reference-search">Find a system or landmark</label>
+        <input id="reference-search" class="reference-search" type="search" placeholder="Range, peak, country…" autocomplete="off">
+        <label class="reference-picker-label" for="reference-picker">Source references</label>
+        <select id="reference-picker" class="reference-picker" aria-describedby="reference-data-note">
+          <option value="">Loading terrain dataset…</option>
+        </select>
+        <p id="reference-data-note" class="reference-data-note">Procedural studies are guided by reference profiles; they are not measured elevation models.</p>
+        <article id="reference-detail" class="reference-detail" hidden>
+          <span id="reference-type" class="reference-detail-type"></span>
+          <h2 id="reference-title"></h2>
+          <p id="reference-description"></p>
+          <p id="reference-facts" class="reference-facts"></p>
+          <div id="reference-sources" class="reference-sources" aria-label="Terrain data sources"></div>
+        </article>
+      </section>
 
     </aside>
 
