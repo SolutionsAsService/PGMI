@@ -7,7 +7,13 @@ import {
   createTerrainFeatureStudy,
   listMountainRanges,
   listTerrainFeatures,
-  loadTerrainDataset
+  loadTerrainDataset,
+  loadTerrariumTile,
+  sampleTerrainElevation,
+  getTerrariumSourceAttributions,
+  TERRARIUM_ATTRIBUTION,
+  TERRARIUM_ATTRIBUTION_URL,
+  TERRARIUM_LICENSE_URL,
 } from "./sdk/atlas-terrain.js";
 
 /*
@@ -357,6 +363,12 @@ let currentEnvironment = "mountains";
 
 let terrainGenerationId = 0;
 
+let terrainRequestId = 0;
+
+let activeTerrainController = null;
+
+let currentElevationTile = null;
+
 let ENVIRONMENTS =
   DEFAULT_ENVIRONMENTS;
 
@@ -428,6 +440,8 @@ async function init() {
 
   bindViewerActions();
 
+  bindTerrainInspector();
+
   updateUI(
     currentEnvironment
   );
@@ -440,6 +454,14 @@ async function init() {
   );
 
   animate();
+
+  if (terrainDataset) {
+    try {
+      applyReferenceStudy(createTerrainFeatureStudy(terrainDataset, "peaks", "everest", ENVIRONMENTS));
+    } catch (error) {
+      console.warn("Atlas Terrain: initial real elevation study could not be selected.", error);
+    }
+  }
 
 }
 
@@ -805,7 +827,7 @@ function updateReferenceDetails(study) {
   const sources = document.getElementById("reference-sources");
 
   if (title) title.textContent = reference.name;
-  if (type) type.textContent = "PROCEDURAL REFERENCE STUDY";
+  if (type) type.textContent = currentElevationTile ? "MEASURED DEM · LIVE TILE" : "REAL-WORLD ELEVATION STUDY";
   if (description) description.textContent = study.description;
 
   if (facts && reference.kind === "mountain-range") {
@@ -829,12 +851,57 @@ function updateReferenceDetails(study) {
     ].filter(Boolean).join("\n");
   }
 
+  const demStatus = document.getElementById("reference-dem-status");
+  if (demStatus) {
+    if (currentElevationTile) {
+      const latitude = reference.latitude;
+      const longitude = reference.longitude;
+      const centerElevation = sampleTerrainElevation(
+        currentElevationTile,
+        currentElevationTile.pixelX / currentElevationTile.width,
+        currentElevationTile.pixelY / currentElevationTile.height,
+      );
+      const tileSpanKm = 40075.017 * Math.cos(latitude * Math.PI / 180) / (2 ** currentElevationTile.zoom);
+      demStatus.textContent = [
+        `${currentElevationTile.zoom}z elevation tile · ${tileSpanKm.toFixed(1)} km wide`,
+        `DEM range ${Math.round(currentElevationTile.minimumElevationM).toLocaleString()}–${Math.round(currentElevationTile.maximumElevationM).toLocaleString()} m`,
+        Number.isFinite(centerElevation) ? `Center sample ${Math.round(centerElevation).toLocaleString()} m` : "Center sample unavailable",
+        Number.isFinite(reference.elevationM) ? `Catalog summit ${Math.round(reference.elevationM).toLocaleString()} m (independent reference)` : null,
+        `View center ${latitude.toFixed(4)}°, ${longitude.toFixed(4)}°`,
+        currentElevationTile.imagerySources ? `Terrain inputs: ${currentElevationTile.imagerySources}` : "Terrain inputs vary by tile (SRTM / GMTED / ETOPO1)",
+        "Surface height uses 2× vertical exaggeration",
+      ].join("\n");
+    } else {
+      demStatus.textContent = "Loading measured elevation data…";
+    }
+  }
+
   if (sources) {
     sources.replaceChildren();
     const heading = document.createElement("span");
     heading.className = "reference-sources-heading";
     heading.textContent = "DATA REFERENCES";
     sources.appendChild(heading);
+    const demLink = document.createElement("a");
+    demLink.href = TERRARIUM_ATTRIBUTION_URL;
+    demLink.target = "_blank";
+    demLink.rel = "noopener noreferrer";
+    demLink.textContent = currentElevationTile ? TERRARIUM_ATTRIBUTION : "Elevation source: Mapzen / AWS Open Data terrain tiles";
+    sources.appendChild(demLink);
+    if (currentElevationTile) {
+      for (const attribution of getTerrariumSourceAttributions(currentElevationTile.imagerySources)) {
+        const credit = document.createElement("span");
+        credit.className = "terrain-source-credit";
+        credit.textContent = attribution;
+        sources.appendChild(credit);
+      }
+    }
+    const licenseLink = document.createElement("a");
+    licenseLink.href = TERRARIUM_LICENSE_URL;
+    licenseLink.target = "_blank";
+    licenseLink.rel = "noopener noreferrer";
+    licenseLink.textContent = "Source-specific attribution and licenses";
+    sources.appendChild(licenseLink);
     for (const source of terrainDataset?.sources || []) {
       const sourceUrl = new URL(source.url);
       if (sourceUrl.protocol !== "https:") continue;
@@ -849,26 +916,72 @@ function updateReferenceDetails(study) {
 }
 
 
-function applyReferenceStudy(study) {
-
-  currentEnvironment = study.reference.environment;
-  activeReference = {
+async function applyReferenceStudy(study) {
+  const previousReference = activeReference;
+  const previousElevationTile = currentElevationTile;
+  const previousEnvironment = currentEnvironment;
+  const previousDataSource = document.getElementById("data-source")?.textContent || dataSourceLabel;
+  const requestedReference = {
     ...study.reference,
     collection: study.reference.kind === "mountain-range" ? "range" : study.reference.kind === "volcano" ? "volcanoes" : "peaks",
   };
+  currentEnvironment = study.reference.environment;
+  const requestId = ++terrainRequestId;
 
   const picker = document.getElementById("reference-picker");
-  if (picker && [...picker.options].some(option => option.value === `${activeReference.collection}:${activeReference.id}`)) {
-    picker.value = `${activeReference.collection}:${activeReference.id}`;
+  if (picker && [...picker.options].some(option => option.value === `${requestedReference.collection}:${requestedReference.id}`)) {
+    picker.value = `${requestedReference.collection}:${requestedReference.id}`;
   }
 
-  showLoading();
-
-  setTimeout(() => {
-    createTerrain(currentEnvironment, study);
-    updateUI(currentEnvironment, study);
+  showLoading("LOADING REAL ELEVATION TILE");
+  activeTerrainController?.abort();
+  activeTerrainController = new AbortController();
+  const status = document.getElementById("renderer-status");
+  if (status) status.textContent = "FETCHING DEM";
+  try {
+    if (!Number.isFinite(study.reference.latitude) || !Number.isFinite(study.reference.longitude)) {
+      throw new Error("This reference has no coordinates for an elevation lookup.");
+    }
+    const tile = await loadTerrariumTile(study.reference.latitude, study.reference.longitude, {
+      zoom: 9,
+      signal: activeTerrainController.signal,
+    });
+    if (requestId !== terrainRequestId) return false;
+    currentElevationTile = tile;
+    const realStudy = { ...study, wireframe: false, dataType: tile.dataType };
+    activeReference = { ...requestedReference, dataType: tile.dataType, tileZoom: tile.zoom };
+    createTerrain(currentEnvironment, realStudy, tile);
+    updateUI(currentEnvironment, realStudy);
+    const dataSource = document.getElementById("data-source");
+    if (dataSource) dataSource.textContent = "LIVE DEM";
+    if (status) status.textContent = "LIVE ELEVATION";
+    updateReferenceDetails(realStudy);
     hideLoading();
-  }, 30);
+    return true;
+  } catch (error) {
+    if (requestId !== terrainRequestId) return false;
+    console.error("Atlas Terrain: real elevation tile could not be loaded.", error);
+    activeReference = previousReference || requestedReference;
+    currentElevationTile = previousElevationTile;
+    currentEnvironment = previousEnvironment;
+    const picker = document.getElementById("reference-picker");
+    if (picker) picker.value = previousReference ? `${previousReference.collection}:${previousReference.id}` : `${requestedReference.collection}:${requestedReference.id}`;
+    const previousStudy = previousReference
+      ? previousReference.collection === "range"
+        ? createMountainRangeStudy(terrainDataset, previousReference.id, ENVIRONMENTS)
+        : createTerrainFeatureStudy(terrainDataset, previousReference.collection, previousReference.id, ENVIRONMENTS)
+      : study;
+    updateUI(previousEnvironment, previousStudy);
+    const dataSource = document.getElementById("data-source");
+    if (dataSource) dataSource.textContent = previousElevationTile ? previousDataSource : "PROCEDURAL PREVIEW";
+    const terrainMode = document.getElementById("terrain-mode");
+    if (terrainMode && !previousElevationTile) terrainMode.textContent = "DEM UNAVAILABLE · PROCEDURAL";
+    const message = document.getElementById("reference-dem-status");
+    if (message) message.textContent = `Could not load a DEM tile for ${requestedReference.name}: ${error.message}. Kept ${previousReference?.name || "the existing procedural scene"}; select this feature again to retry.`;
+    if (status) status.textContent = "DEM LOAD FAILED";
+    hideLoading();
+    return false;
+  }
 }
 
 
@@ -885,7 +998,51 @@ function bindReferencePicker() {
     const study = collection === "range"
       ? createMountainRangeStudy(terrainDataset, id, ENVIRONMENTS)
       : createTerrainFeatureStudy(terrainDataset, collection, id, ENVIRONMENTS);
-    applyReferenceStudy(study);
+    void applyReferenceStudy(study);
+  });
+}
+
+
+function bindTerrainInspector() {
+  const canvas = renderer?.domElement;
+  const readout = document.getElementById("terrain-inspector");
+  const coordinates = document.getElementById("terrain-inspector-coordinates");
+  const elevation = document.getElementById("terrain-inspector-elevation");
+  if (!canvas || !readout || !coordinates || !elevation) return;
+
+  const raycaster = new THREE.Raycaster();
+  const pointer = new THREE.Vector2();
+  canvas.addEventListener("pointermove", event => {
+    const tile = currentElevationTile;
+    if (!tile || !terrain) {
+      readout.hidden = true;
+      return;
+    }
+
+    const bounds = canvas.getBoundingClientRect();
+    pointer.x = ((event.clientX - bounds.left) / bounds.width) * 2 - 1;
+    pointer.y = -((event.clientY - bounds.top) / bounds.height) * 2 + 1;
+    raycaster.setFromCamera(pointer, camera);
+    const hit = raycaster.intersectObject(terrain, false)[0];
+    if (!hit) {
+      readout.hidden = true;
+      return;
+    }
+
+    const u = THREE.MathUtils.clamp(hit.point.x / CONFIG.terrain.width + 0.5, 0, 1);
+    const v = THREE.MathUtils.clamp(hit.point.z / CONFIG.terrain.depth + 0.5, 0, 1);
+    const tileCount = 2 ** tile.zoom;
+    const longitude = (tile.x + u) / tileCount * 360 - 180;
+    const tileY = tile.y + v;
+    const latitude = Math.atan(Math.sinh(Math.PI * (1 - 2 * tileY / tileCount))) * 180 / Math.PI;
+    const sampledElevation = sampleTerrainElevation(tile, u, v);
+    coordinates.textContent = `${Math.abs(latitude).toFixed(4)}°${latitude < 0 ? "S" : "N"}  ${Math.abs(longitude).toFixed(4)}°${longitude < 0 ? "W" : "E"}`;
+    elevation.textContent = `${Math.round(sampledElevation).toLocaleString()} m`;
+    readout.hidden = false;
+  });
+
+  canvas.addEventListener("pointerleave", () => {
+    readout.hidden = true;
   });
 }
 
@@ -1401,10 +1558,11 @@ function updateToggleButton(
 
 function createTerrain(
   environmentName,
-  preset = null
+  preset = null,
+  elevationModel = null,
 ) {
 
-  const environment =
+  let environment =
     preset || ENVIRONMENTS[environmentName];
 
 
@@ -1465,11 +1623,16 @@ function createTerrain(
   // Elevation
   // ------------------------------------------------------------
 
-  generateElevation(
+  const realReliefHeight = generateElevation(
     terrainGeometry,
     environment,
-    environmentName
+    environmentName,
+    elevationModel,
   );
+
+  if (elevationModel) {
+    environment = { ...environment, height: Math.max(realReliefHeight, 1), wireframe: false };
+  }
 
 
   // ------------------------------------------------------------
@@ -1487,7 +1650,7 @@ function createTerrain(
   // ------------------------------------------------------------
 
   wireframe =
-    environment.wireframe ??
+    elevationModel ? false : environment.wireframe ??
     wireframe;
 
 
@@ -1534,6 +1697,8 @@ function createTerrain(
       terrainMaterial
 
     );
+
+  terrain.userData.elevationTile = elevationModel;
 
 
   terrain.castShadow =
@@ -1594,11 +1759,29 @@ function createTerrain(
 function generateElevation(
   geometry,
   environment,
-  environmentName
+  environmentName,
+  elevationModel = null,
 ) {
 
   const position =
     geometry.attributes.position;
+
+  if (elevationModel) {
+    const groundWidthMeters = 40075017 * Math.cos(elevationModel.latitude * Math.PI / 180) / (2 ** elevationModel.zoom);
+    const worldPerMeter = CONFIG.terrain.width / groundWidthMeters * 2;
+    let maximumHeight = 0;
+    for (let index = 0; index < position.count; index += 1) {
+      const u = THREE.MathUtils.clamp(position.getX(index) / CONFIG.terrain.width + 0.5, 0, 1);
+      const v = THREE.MathUtils.clamp(position.getZ(index) / CONFIG.terrain.depth + 0.5, 0, 1);
+      const elevation = sampleTerrainElevation(elevationModel, u, v);
+      const relativeHeight = Math.max(0, elevation - elevationModel.minimumElevationM) * worldPerMeter;
+      position.setY(index, relativeHeight);
+      maximumHeight = Math.max(maximumHeight, relativeHeight);
+    }
+    position.needsUpdate = true;
+    geometry.computeVertexNormals();
+    return maximumHeight;
+  }
 
 
   const width =
@@ -1940,6 +2123,8 @@ function generateElevation(
 
 
   geometry.computeVertexNormals();
+
+  return null;
 
 }
 
@@ -2315,6 +2500,9 @@ function bindEnvironmentSwitcher() {
 
           showLoading();
 
+          terrainRequestId += 1;
+          activeTerrainController?.abort();
+
 
           // Set before generation so environment-specific
           // terrain functions use the correct environment.
@@ -2322,6 +2510,7 @@ function bindEnvironmentSwitcher() {
             environment;
 
           activeReference = null;
+          currentElevationTile = null;
 
 
           setTimeout(
@@ -2336,6 +2525,11 @@ function bindEnvironmentSwitcher() {
                 environment,
                 null
               );
+
+              const dataSource = document.getElementById("data-source");
+              if (dataSource) dataSource.textContent = dataSourceLabel;
+              const status = document.getElementById("renderer-status");
+              if (status) status.textContent = "PROCEDURAL TERRAIN";
 
 
               hideLoading();
@@ -2410,7 +2604,7 @@ function updateUI(
   }
 
   if (terrainMode) {
-    terrainMode.textContent = preset ? "REFERENCE PROFILE" : "PROCEDURAL";
+    terrainMode.textContent = currentElevationTile ? "LIVE DEM · 2× RELIEF" : preset ? "LOADING DEM" : "PROCEDURAL";
   }
 
 
@@ -2452,7 +2646,7 @@ function updateUI(
 // LOADING
 // ============================================================================
 
-function showLoading() {
+function showLoading(message = "LOADING TERRAIN") {
 
   const loading =
     document.getElementById(
@@ -2461,6 +2655,9 @@ function showLoading() {
 
 
   if (loading) {
+
+    const label = loading.querySelector("span");
+    if (label) label.textContent = message;
 
     loading.style.opacity =
       "1";
@@ -2639,6 +2836,9 @@ window.AtlasTerrain = {
       currentEnvironment =
         environment;
 
+      terrainRequestId += 1;
+      activeTerrainController?.abort();
+      currentElevationTile = null;
       activeReference = null;
 
       createTerrain(
@@ -2651,6 +2851,10 @@ window.AtlasTerrain = {
 
       const picker = document.getElementById("reference-picker");
       if (picker) picker.value = "";
+      const dataSource = document.getElementById("data-source");
+      if (dataSource) dataSource.textContent = dataSourceLabel;
+      const status = document.getElementById("renderer-status");
+      if (status) status.textContent = "PROCEDURAL TERRAIN";
 
     }
 
@@ -2683,11 +2887,10 @@ window.AtlasTerrain = {
   },
 
 
-  selectMountainRange(id) {
+  async selectMountainRange(id) {
     if (!terrainDataset) return false;
     try {
-      applyReferenceStudy(createMountainRangeStudy(terrainDataset, id, ENVIRONMENTS));
-      return true;
+      return await applyReferenceStudy(createMountainRangeStudy(terrainDataset, id, ENVIRONMENTS));
     } catch (error) {
       console.warn("Atlas Terrain: mountain range could not be selected.", error);
       return false;
@@ -2695,11 +2898,10 @@ window.AtlasTerrain = {
   },
 
 
-  selectTerrainFeature(type, id) {
+  async selectTerrainFeature(type, id) {
     if (!terrainDataset) return false;
     try {
-      applyReferenceStudy(createTerrainFeatureStudy(terrainDataset, type, id, ENVIRONMENTS));
-      return true;
+      return await applyReferenceStudy(createTerrainFeatureStudy(terrainDataset, type, id, ENVIRONMENTS));
     } catch (error) {
       console.warn("Atlas Terrain: terrain feature could not be selected.", error);
       return false;
@@ -2713,6 +2915,14 @@ window.AtlasTerrain = {
       countries: activeReference.countries ? [...activeReference.countries] : undefined,
       tags: activeReference.tags ? [...activeReference.tags] : undefined,
       highestPeak: activeReference.highestPeak ? { ...activeReference.highestPeak } : undefined,
+      elevation: currentElevationTile ? {
+        zoom: currentElevationTile.zoom,
+        minimumElevationM: currentElevationTile.minimumElevationM,
+        maximumElevationM: currentElevationTile.maximumElevationM,
+        imagerySources: currentElevationTile.imagerySources,
+        attribution: currentElevationTile.attribution,
+        attributionUrl: currentElevationTile.attributionUrl,
+      } : null,
     } : {
       kind: "environment",
       id: currentEnvironment,

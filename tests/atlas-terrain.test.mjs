@@ -5,9 +5,15 @@ import {
   buildEnvironmentCatalog,
   createMountainRangeStudy,
   createTerrainFeatureStudy,
+  decodeTerrariumPixels,
+  getTerrariumSourceAttributions,
   listMountainRanges,
   listTerrainFeatures,
+  loadTerrariumTile,
   loadTerrainDataset,
+  sampleTerrainElevation,
+  terrainTileAddress,
+  terrariumElevation,
   validateTerrainDataset,
 } from '../sdk/atlas-terrain.js';
 
@@ -64,22 +70,107 @@ test('mountain range studies carry source facts and derive bounded renderer sett
   assert.equal(study.reference.name, 'Andes');
   assert.equal(study.reference.kind, 'mountain-range');
   assert.equal(study.reference.highestPeak.name, 'Aconcagua');
+  assert.equal(study.reference.latitude, -32.6532);
+  assert.equal(study.reference.longitude, -70.0109);
   assert.deepEqual(study.reference.countries, ['Argentina', 'Bolivia', 'Chile', 'Colombia', 'Ecuador', 'Peru', 'Venezuela']);
-  assert.match(study.description, /not measured elevation data/);
+  assert.match(study.description, /Loads a real elevation tile/);
   assert.ok(study.height > 0 && study.height <= environments.mountains.height * 2);
   assert.throws(() => createMountainRangeStudy(dataset, 'not-a-range', environments), /not found/);
 });
 
-test('peak and volcano reference studies use distinct procedural biomes and remain explicit previews', () => {
+test('Terrarium coordinate math returns a valid slippy tile and clamps world edges', () => {
+  assert.deepEqual(terrainTileAddress(0, 0, 1), {
+    zoom: 1,
+    x: 1,
+    y: 1,
+    pixelX: 0,
+    pixelY: 0,
+    url: 'https://s3.amazonaws.com/elevation-tiles-prod/terrarium/1/1/1.png',
+  });
+  const eastEdge = terrainTileAddress(0, 180, 9);
+  assert.equal(eastEdge.x, 511);
+  assert.match(eastEdge.url, /\/9\/511\/256\.png$/);
+  assert.throws(() => terrainTileAddress(91, 0, 9), /valid WGS84/);
+  assert.throws(() => terrainTileAddress(0, 0, 16), /zoom/);
+});
+
+test('Terrarium RGB decoding maps encoded pixels to meter elevation', () => {
+  assert.equal(terrariumElevation(128, 123, 64), 123.25);
+  const rgba = new Uint8ClampedArray(256 * 256 * 4);
+  for (let index = 0; index < rgba.length; index += 4) {
+    rgba[index] = 128;
+    rgba[index + 1] = 123;
+    rgba[index + 2] = 64;
+    rgba[index + 3] = 255;
+  }
+  const decoded = decodeTerrariumPixels(rgba);
+  assert.equal(decoded.length, 256 * 256);
+  assert.equal(decoded[0], 123.25);
+  assert.throws(() => decodeTerrariumPixels(new Uint8Array(16), 2, 2), /256×256/);
+});
+
+test('real tile loader returns bounded elevation samples and source attribution', async () => {
+  let requestedUrl = '';
+  let requestedMode = '';
+  const elevations = new Float32Array(256 * 256);
+  elevations.fill(250);
+  elevations[128 * 256 + 128] = 725;
+  const tile = await loadTerrariumTile(27.9881, 86.925, {
+    zoom: 9,
+    fetcher: async (url, options) => {
+      requestedUrl = url;
+      requestedMode = options.mode;
+      return {
+        ok: true,
+        blob: async () => new Blob(['tile']),
+        headers: new Headers({ 'x-amz-meta-x-imagery-sources': 'srtm/N27E086.tif' }),
+      };
+    },
+    decoder: async () => ({ width: 256, height: 256, elevations }),
+  });
+  assert.equal(requestedMode, 'cors');
+  assert.equal(requestedUrl, tile.url);
+  assert.match(tile.url, /\/9\/379\/214\.png$/);
+  assert.equal(tile.minimumElevationM, 250);
+  assert.equal(tile.maximumElevationM, 725);
+  assert.equal(tile.imagerySources, 'srtm/N27E086.tif');
+  assert.equal(tile.dataType, 'measured-elevation-tile');
+  assert.ok(tile.bounds.north > tile.bounds.south);
+  assert.match(tile.attributionUrl, /^https:\/\//);
+});
+
+test('tile elevation sampler bilinearly interpolates and rejects points outside its tile', () => {
+  const tile = { width: 2, height: 2, elevations: new Float32Array([0, 100, 200, 300]) };
+  assert.equal(sampleTerrainElevation(tile, 0, 0), 0);
+  assert.equal(sampleTerrainElevation(tile, 1, 1), 300);
+  assert.equal(sampleTerrainElevation(tile, 0.5, 0.5), 150);
+  assert.equal(sampleTerrainElevation(tile, 1.1, 0.5), null);
+});
+
+test('source-specific tile credits resolve the actual SRTM and GMTED source metadata', () => {
+  const credits = getTerrariumSourceAttributions('srtm/N27E086.tif, gmted/10N060E_mea075.tif');
+  assert.deepEqual(credits, [
+    'SRTM and GMTED2010 terrain data courtesy of the U.S. Geological Survey.',
+  ]);
+  assert.deepEqual(getTerrariumSourceAttributions('usgs/3dep/N40W105.tif'), [
+    'U.S. 3DEP (formerly NED) terrain data courtesy of the U.S. Geological Survey.',
+  ]);
+  assert.deepEqual(getTerrariumSourceAttributions('unlisted/source.tif'), []);
+});
+
+test('peak and volcano studies resolve real coordinates while retaining distinct source biomes', () => {
   const environments = buildEnvironmentCatalog(dataset, fallbacks, terrainDefaults);
   const peak = createTerrainFeatureStudy(dataset, 'peaks', 'everest', environments);
   const volcano = createTerrainFeatureStudy(dataset, 'volcanoes', 'fuji', environments);
   assert.equal(peak.reference.kind, 'mountain-peak');
   assert.equal(peak.reference.elevationM, 8848.86);
+  assert.equal(peak.reference.latitude, 27.9881);
+  assert.equal(peak.reference.longitude, 86.925);
   assert.equal(peak.reference.environment, 'mountains');
   assert.equal(volcano.reference.kind, 'volcano');
   assert.equal(volcano.reference.environment, 'volcanic');
-  assert.match(volcano.description, /not a digital elevation model/);
+  assert.match(volcano.description, /Loads a real elevation tile/);
+  assert.equal(volcano.reference.latitude, 35.3606);
   assert.throws(() => createTerrainFeatureStudy(dataset, 'peaks', 'missing', environments), /not found/);
 });
 

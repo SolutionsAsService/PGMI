@@ -113,6 +113,56 @@
   overflow-wrap: anywhere;
 }
 
+.reference-detail .reference-dem-status {
+  margin-top: 10px;
+  padding: 9px;
+  border-left: 2px solid #81c8a4;
+  background: rgba(78, 141, 108, .1);
+  color: #b4d5c1;
+  font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  font-size: 8px;
+  line-height: 1.7;
+  overflow-wrap: anywhere;
+}
+
+.terrain-inspector {
+  position: fixed;
+  z-index: 10;
+  right: 20px;
+  bottom: 20px;
+  display: grid;
+  gap: 5px;
+  min-width: 170px;
+  padding: 10px 12px;
+  border: 1px solid rgba(186, 215, 198, .2);
+  background: rgba(8, 13, 14, .88);
+  color: rgba(225, 238, 229, .8);
+  pointer-events: none;
+  backdrop-filter: blur(8px);
+}
+
+.terrain-inspector[hidden] {
+  display: none;
+}
+
+.terrain-inspector-label {
+  color: #8fc4a3;
+  font-size: 7px;
+  font-weight: 700;
+  letter-spacing: .12em;
+}
+
+#terrain-inspector-coordinates {
+  font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  font-size: 9px;
+}
+
+#terrain-inspector-elevation {
+  color: #f0f4ef;
+  font-size: 16px;
+  font-weight: 600;
+}
+
 .reference-sources {
   display: grid;
   gap: 5px;
@@ -138,6 +188,12 @@
 .reference-sources a:hover {
   color: #e0e8e2;
   text-decoration: underline;
+}
+
+.terrain-source-credit {
+  color: rgba(220, 230, 224, .55);
+  font-size: 7px;
+  line-height: 1.5;
 }
 
 .reference-picker:focus-visible,

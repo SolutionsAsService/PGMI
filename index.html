@@ -116,21 +116,22 @@
 
       <section class="reference-library" aria-label="Real-world terrain references">
         <div class="reference-library-heading">
-          <span class="panel-eyebrow">REAL-WORLD STUDIES</span>
+          <span class="panel-eyebrow">LIVE TERRAIN ATLAS</span>
           <span id="reference-count" class="reference-count">LOADING</span>
         </div>
         <label class="reference-search-label" for="reference-search">Find a system or landmark</label>
         <input id="reference-search" class="reference-search" type="search" placeholder="Range, peak, country…" autocomplete="off">
-        <label class="reference-picker-label" for="reference-picker">Source references</label>
+        <label class="reference-picker-label" for="reference-picker">Real places · measured elevation tiles</label>
         <select id="reference-picker" class="reference-picker" aria-describedby="reference-data-note">
           <option value="">Loading terrain dataset…</option>
         </select>
-        <p id="reference-data-note" class="reference-data-note">Procedural studies are guided by reference profiles; they are not measured elevation models.</p>
+        <p id="reference-data-note" class="reference-data-note">Choose a real mountain or landmark to load its geographic elevation tile. The default view opens on Mount Everest.</p>
         <article id="reference-detail" class="reference-detail" hidden>
           <span id="reference-type" class="reference-detail-type"></span>
           <h2 id="reference-title"></h2>
           <p id="reference-description"></p>
           <p id="reference-facts" class="reference-facts"></p>
+          <p id="reference-dem-status" class="reference-dem-status" aria-live="polite">Choose a location to fetch real terrain.</p>
           <div id="reference-sources" class="reference-sources" aria-label="Terrain data sources"></div>
         </article>
       </section>
@@ -231,6 +232,12 @@
 
       </div>
 
+    </div>
+
+    <div id="terrain-inspector" class="terrain-inspector" aria-live="polite" hidden>
+      <span class="terrain-inspector-label">LIVE TERRAIN SAMPLE</span>
+      <span id="terrain-inspector-coordinates"></span>
+      <strong id="terrain-inspector-elevation"></strong>
     </div>
 
 
