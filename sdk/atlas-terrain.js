@@ -1,5 +1,5 @@
 export const TERRAIN_DATA_URL = './data/mountains.json';
-export const SDK_VERSION = '1.1.0';
+export const SDK_VERSION = '1.2.0';
 export const TERRARIUM_TILE_URL = 'https://s3.amazonaws.com/elevation-tiles-prod/terrarium';
 export const TERRARIUM_ATTRIBUTION_URL = 'https://registry.opendata.aws/terrain-tiles/';
 export const TERRARIUM_LICENSE_URL = 'https://raw.githubusercontent.com/tilezen/joerd/master/docs/attribution.md';
@@ -200,6 +200,132 @@ export async function loadTerrariumTile(latitude, longitude, {
   };
 }
 
+/** Recommended zoom per reference kind: summits get ~30–40 km of context, ranges ~150 km. */
+export const REFERENCE_VIEW_ZOOM = Object.freeze({ 'mountain-peak': 11, volcano: 11, 'mountain-range': 9 });
+
+const EARTH_CIRCUMFERENCE_M = 40075016.686;
+
+/** Global Web-Mercator pixel coordinates (tile size 256) for a WGS84 point. */
+export function latLonToGlobalPixel(latitude, longitude, zoom) {
+  const size = TERRAIN_TILE_SIZE * 2 ** zoom;
+  const lat = clamp(latitude, -MAX_MERCATOR_LATITUDE, MAX_MERCATOR_LATITUDE) * Math.PI / 180;
+  return {
+    x: (longitude + 180) / 360 * size,
+    y: (1 - Math.asinh(Math.tan(lat)) / Math.PI) / 2 * size,
+  };
+}
+
+export function globalPixelToLatLon(x, y, zoom) {
+  const size = TERRAIN_TILE_SIZE * 2 ** zoom;
+  let longitude = x / size * 360 - 180;
+  longitude = ((longitude + 540) % 360) - 180;
+  return { latitude: Math.atan(Math.sinh(Math.PI * (1 - 2 * y / size))) * 180 / Math.PI, longitude };
+}
+
+/**
+ * Loads a square elevation window CENTERED on the coordinate by stitching all
+ * Terrarium tiles it overlaps (wrapping across the antimeridian). Unlike a
+ * single tile, the requested point is always in the middle of the surface.
+ * Returns a tile-compatible object (width/height/elevations/bounds/pixelX/pixelY)
+ * plus groundWidthMeters and pixelToLatLon/uvToLatLon helpers.
+ */
+export async function loadTerrainView(latitude, longitude, {
+  zoom = 11,
+  windowPx = 512,
+  fetcher = globalThis.fetch,
+  decoder = decodeTerrariumBlob,
+  signal,
+} = {}) {
+  terrainTileAddress(latitude, longitude, zoom); // validates inputs
+  if (!Number.isInteger(windowPx) || windowPx < 64 || windowPx > 1024) throw new Error('windowPx must be an integer from 64 to 1024.');
+  if (typeof fetcher !== 'function') throw new Error('A Fetch-compatible elevation tile loader is required.');
+  const tileCount = 2 ** zoom;
+  const worldPx = TERRAIN_TILE_SIZE * tileCount;
+  const center = latLonToGlobalPixel(latitude, longitude, zoom);
+  const half = windowPx / 2;
+  const left = Math.round(center.x - half);
+  const top = clamp(Math.round(center.y - half), 0, Math.max(0, worldPx - windowPx));
+  const firstTileX = Math.floor(left / TERRAIN_TILE_SIZE);
+  const lastTileX = Math.floor((left + windowPx - 1) / TERRAIN_TILE_SIZE);
+  const firstTileY = Math.floor(top / TERRAIN_TILE_SIZE);
+  const lastTileY = Math.min(tileCount - 1, Math.floor((top + windowPx - 1) / TERRAIN_TILE_SIZE));
+
+  const jobs = [];
+  for (let ty = firstTileY; ty <= lastTileY; ty += 1) {
+    for (let tx = firstTileX; tx <= lastTileX; tx += 1) {
+      const wrappedX = ((tx % tileCount) + tileCount) % tileCount;
+      const url = `${TERRARIUM_TILE_URL}/${zoom}/${wrappedX}/${ty}.png`;
+      jobs.push((async () => {
+        const response = await fetcher(url, { mode: 'cors', signal });
+        if (!response?.ok) throw new Error(`Elevation tile request failed${response?.status ? ` (${response.status})` : ''}.`);
+        const decoded = await decoder(await response.blob());
+        if (decoded.width !== TERRAIN_TILE_SIZE || decoded.height !== TERRAIN_TILE_SIZE) throw new Error('The elevation provider returned a tile with an unsupported size.');
+        return { tx, ty, decoded, sources: response.headers?.get?.('x-amz-meta-x-imagery-sources') || '' };
+      })());
+    }
+  }
+  const tiles = await Promise.all(jobs);
+  const elevations = new Float32Array(windowPx * windowPx);
+  let minimumElevationM = Infinity;
+  let maximumElevationM = -Infinity;
+  for (const { tx, ty, decoded } of tiles) {
+    const originX = tx * TERRAIN_TILE_SIZE - left;
+    const originY = ty * TERRAIN_TILE_SIZE - top;
+    for (let y = 0; y < TERRAIN_TILE_SIZE; y += 1) {
+      const wy = originY + y;
+      if (wy < 0 || wy >= windowPx) continue;
+      for (let x = 0; x < TERRAIN_TILE_SIZE; x += 1) {
+        const wx = originX + x;
+        if (wx < 0 || wx >= windowPx) continue;
+        const value = decoded.elevations[y * TERRAIN_TILE_SIZE + x];
+        if (!Number.isFinite(value)) throw new Error('The elevation tile contains an invalid sample.');
+        elevations[wy * windowPx + wx] = value;
+        if (value < minimumElevationM) minimumElevationM = value;
+        if (value > maximumElevationM) maximumElevationM = value;
+      }
+    }
+  }
+  const pixelToLatLon = (px, py) => globalPixelToLatLon(left + px, top + py, zoom);
+  const northWest = pixelToLatLon(0, 0);
+  const southEast = pixelToLatLon(windowPx, windowPx);
+  const metersPerPixel = EARTH_CIRCUMFERENCE_M * Math.cos(latitude * Math.PI / 180) / worldPx;
+  const sources = [...new Set(tiles.flatMap((t) => t.sources.split(',').map((s) => s.trim()).filter(Boolean)))].join(', ');
+  return {
+    zoom,
+    latitude,
+    longitude,
+    width: windowPx,
+    height: windowPx,
+    elevations,
+    minimumElevationM,
+    maximumElevationM,
+    pixelX: center.x - left,
+    pixelY: center.y - top,
+    originPixelX: left,
+    originPixelY: top,
+    tileCount: tiles.length,
+    bounds: { west: northWest.longitude, north: northWest.latitude, east: southEast.longitude, south: southEast.latitude },
+    metersPerPixel,
+    groundWidthMeters: metersPerPixel * windowPx,
+    pixelToLatLon,
+    uvToLatLon: (u, v) => pixelToLatLon(u * windowPx, v * windowPx),
+    imagerySources: sources.slice(0, 240),
+    attribution: TERRARIUM_ATTRIBUTION,
+    attributionUrl: TERRARIUM_ATTRIBUTION_URL,
+    elevationUnit: 'm',
+    dataType: 'measured-elevation-mosaic',
+  };
+}
+
+/** Center of a lat/lon box, correct when the box crosses the antimeridian (west > east). */
+export function extentCenter(extent) {
+  if (!extent) return null;
+  const east = extent.east < extent.west ? extent.east + 360 : extent.east;
+  let longitude = (extent.west + east) / 2;
+  if (longitude > 180) longitude -= 360;
+  return { latitude: (extent.north + extent.south) / 2, longitude };
+}
+
 export function sampleTerrainElevation(tile, u, v) {
   if (!tile?.elevations || !Number.isFinite(u) || !Number.isFinite(v) || u < 0 || u > 1 || v < 0 || v > 1) {
     return null;
@@ -297,8 +423,8 @@ export function createMountainRangeStudy(dataset, rangeId, environments) {
   if (!base) throw new Error(`No terrain preset is available for '${range.name}'.`);
   const profile = range.terrain_profile;
   const extent = range.approximate_extent;
-  const latitude = range.highest_peak?.latitude ?? (extent ? (extent.north + extent.south) / 2 : null);
-  const longitude = range.highest_peak?.longitude ?? (extent ? (extent.west + extent.east) / 2 : null);
+  const latitude = range.highest_peak?.latitude ?? extentCenter(extent)?.latitude ?? null;
+  const longitude = range.highest_peak?.longitude ?? extentCenter(extent)?.longitude ?? null;
   return {
     ...base,
     title: range.name,

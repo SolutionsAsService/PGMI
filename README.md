@@ -14,10 +14,20 @@ landscapes — rendered in the browser with WebGL.
   includes real-world mountain range, peak, and volcano reference data.
   If the dataset cannot be loaded, the app falls back to built-in defaults.
 - **43 geographic references** — search/select 30 mountain systems, 8 major
-  peaks and 5 volcanoes. Selecting a reference loads its real geographic
-  elevation tile and renders a 3D digital-elevation surface. Mountain systems
-  focus on their listed high point or approximate regional center; they do not
-  represent the entire geographic extent of a range.
+  peaks and 5 volcanoes. Selecting a reference loads a **centered real
+  elevation window** (stitched from every Terrarium tile it overlaps, wrapping
+  across the antimeridian) so the summit is always in the middle of the
+  surface. Peaks and volcanoes load at zoom 11 (~30–40 km wide, ~70 m/px);
+  mountain systems at zoom 9 (~130–150 km) around their highest point. A range
+  view does not represent the entire extent of the range.
+- **Verified coordinates** — every summit in `data/mountains.json` is checked
+  against the DEM by `npm run verify:references` (highest DEM cell within
+  2 km must be ≤ 750 m from the catalog point and within 250 m of the listed
+  height). The 2026-10-12 pass corrected Mount Narodnaya (was ~45 km off),
+  Liushi Shan, Thabana Ntlenyana, Mount Kirkpatrick, Puncak Jaya, Uhuru Peak
+  and Elbrus.
+- **Relief control** — switch real surfaces between true scale (1×) and 2×/3×
+  vertical exaggeration; the readout always states the current scale.
 - **Live elevation readout** — hover over the 3D surface to inspect its mapped
   latitude/longitude and sampled elevation. The viewer reports tile zoom,
   elevation range, center sample, terrain inputs and source attribution.
@@ -40,9 +50,10 @@ over HTTP (opening `index.html` directly from the filesystem will use the
 built-in fallback data instead).
 
 ```bash
-# Node.js: dependency-free SDK contract tests and local static server
+# Node.js >= 20: dependency-free tests and local static server
 npm test
-npm run serve
+npm start                    # = npm run serve, honours $PORT (default 8000)
+npm run verify:references    # live DEM check of every catalog coordinate
 
 # then open
 http://localhost:8000
@@ -53,8 +64,18 @@ build step is required; the Three.js runtime remains vendored locally.
 
 ## Deployment
 
-This is a fully static site — no build step required. Deploy the repository
-contents to any static host (GitHub Pages, Netlify, Vercel, etc.).
+### Shadw / Autheo DevHub
+
+`shadw.yml` and `devhub.yml` (v1) are included. Import the repository in Shadw
+or DevHub, or use the "Deploy to Shadw" / "Deploy to Autheo DevHub" GitHub
+Action. The platform runs `npm start` — a zero-dependency Node static server
+(`scripts/serve.mjs`) listening on `$PORT` that never serves `.git`, `scripts/`,
+`tests/` or `old/`. No build step and no install.
+
+### Any static host
+
+The site is also fully static — deploy the repository contents to any static
+host (GitHub Pages, Netlify, Vercel, etc.).
 
 For GitHub Pages: enable **Settings → Pages → Deploy from branch** and the
 site will be served as-is. Three.js is vendored under
@@ -77,9 +98,14 @@ coverage, resolution and underlying sources vary by location. Attribution:
 ├── data/
 │   └── mountains.json  # Terrain dataset (environments + mountain data)
 ├── sdk/
-│   ├── atlas-terrain.js # Reusable dataset/preset SDK
+│   ├── atlas-terrain.js # Dataset, DEM window (loadTerrainView) and preset SDK
 │   └── README.md        # SDK integration contract
-├── tests/               # Dataset and SDK contract tests
+├── scripts/
+│   ├── serve.mjs              # Static server (npm start, $PORT)
+│   ├── verify-references.mjs  # DEM verification of catalog coordinates
+│   └── png-terrarium.mjs      # Node PNG decoder for Terrarium tiles
+├── shadw.yml / devhub.yml     # Shadw / DevHub deployment config
+├── tests/               # Dataset, SDK and DEM-window tests
 ├── vendor/
 │   └── three/          # Vendored Three.js (MIT licensed)
 ├── codepen             # Original prototype reference

@@ -8,7 +8,8 @@ import {
   listMountainRanges,
   listTerrainFeatures,
   loadTerrainDataset,
-  loadTerrariumTile,
+  loadTerrainView,
+  REFERENCE_VIEW_ZOOM,
   sampleTerrainElevation,
   getTerrariumSourceAttributions,
   TERRARIUM_ATTRIBUTION,
@@ -49,6 +50,10 @@ const CONFIG = {
     segments: 180,
 
     height: 32,
+
+    // Vertical exaggeration for real DEM surfaces (1 = true scale).
+    verticalExaggeration: 2,
+    exaggerationSteps: [1, 2, 3],
 
     wireframe: true
   },
@@ -368,6 +373,7 @@ let terrainRequestId = 0;
 let activeTerrainController = null;
 
 let currentElevationTile = null;
+let lastRealStudy = null;
 
 let ENVIRONMENTS =
   DEFAULT_ENVIRONMENTS;
@@ -861,15 +867,15 @@ function updateReferenceDetails(study) {
         currentElevationTile.pixelX / currentElevationTile.width,
         currentElevationTile.pixelY / currentElevationTile.height,
       );
-      const tileSpanKm = 40075.017 * Math.cos(latitude * Math.PI / 180) / (2 ** currentElevationTile.zoom);
+      const tileSpanKm = currentElevationTile.groundWidthMeters / 1000;
       demStatus.textContent = [
-        `${currentElevationTile.zoom}z elevation tile · ${tileSpanKm.toFixed(1)} km wide`,
+        `${currentElevationTile.zoom}z DEM window (${currentElevationTile.tileCount} tiles, centered) · ${tileSpanKm.toFixed(1)} km wide · ${currentElevationTile.metersPerPixel.toFixed(0)} m/px`,
         `DEM range ${Math.round(currentElevationTile.minimumElevationM).toLocaleString()}–${Math.round(currentElevationTile.maximumElevationM).toLocaleString()} m`,
         Number.isFinite(centerElevation) ? `Center sample ${Math.round(centerElevation).toLocaleString()} m` : "Center sample unavailable",
         Number.isFinite(reference.elevationM) ? `Catalog summit ${Math.round(reference.elevationM).toLocaleString()} m (independent reference)` : null,
         `View center ${latitude.toFixed(4)}°, ${longitude.toFixed(4)}°`,
         currentElevationTile.imagerySources ? `Terrain inputs: ${currentElevationTile.imagerySources}` : "Terrain inputs vary by tile (SRTM / GMTED / ETOPO1)",
-        "Surface height uses 2× vertical exaggeration",
+        CONFIG.terrain.verticalExaggeration === 1 ? "Surface height at true scale (1×)" : `Surface height uses ${CONFIG.terrain.verticalExaggeration}× vertical exaggeration`,
       ].join("\n");
     } else {
       demStatus.textContent = "Loading measured elevation data…";
@@ -942,13 +948,17 @@ async function applyReferenceStudy(study) {
     if (!Number.isFinite(study.reference.latitude) || !Number.isFinite(study.reference.longitude)) {
       throw new Error("This reference has no coordinates for an elevation lookup.");
     }
-    const tile = await loadTerrariumTile(study.reference.latitude, study.reference.longitude, {
-      zoom: 9,
+    // Centered multi-tile window: the selected summit is always in the middle
+    // of the surface (a single tile could leave it at an edge or corner).
+    const tile = await loadTerrainView(study.reference.latitude, study.reference.longitude, {
+      zoom: REFERENCE_VIEW_ZOOM[study.reference.kind] ?? 10,
+      windowPx: 512,
       signal: activeTerrainController.signal,
     });
     if (requestId !== terrainRequestId) return false;
     currentElevationTile = tile;
     const realStudy = { ...study, wireframe: false, dataType: tile.dataType };
+    lastRealStudy = realStudy;
     activeReference = { ...requestedReference, dataType: tile.dataType, tileZoom: tile.zoom };
     createTerrain(currentEnvironment, realStudy, tile);
     updateUI(currentEnvironment, realStudy);
@@ -1031,10 +1041,7 @@ function bindTerrainInspector() {
 
     const u = THREE.MathUtils.clamp(hit.point.x / CONFIG.terrain.width + 0.5, 0, 1);
     const v = THREE.MathUtils.clamp(hit.point.z / CONFIG.terrain.depth + 0.5, 0, 1);
-    const tileCount = 2 ** tile.zoom;
-    const longitude = (tile.x + u) / tileCount * 360 - 180;
-    const tileY = tile.y + v;
-    const latitude = Math.atan(Math.sinh(Math.PI * (1 - 2 * tileY / tileCount))) * 180 / Math.PI;
+    const { latitude, longitude } = tile.uvToLatLon(u, v);
     const sampledElevation = sampleTerrainElevation(tile, u, v);
     coordinates.textContent = `${Math.abs(latitude).toFixed(4)}°${latitude < 0 ? "S" : "N"}  ${Math.abs(longitude).toFixed(4)}°${longitude < 0 ? "W" : "E"}`;
     elevation.textContent = `${Math.round(sampledElevation).toLocaleString()} m`;
@@ -1404,6 +1411,25 @@ function bindViewerActions() {
       "toggle-rotate"
     );
 
+  const reliefButton = document.getElementById("toggle-relief");
+  if (reliefButton) {
+    const label = () => {
+      const state = reliefButton.querySelector(".action-state");
+      if (state) state.textContent = `${CONFIG.terrain.verticalExaggeration}×`;
+      reliefButton.title = CONFIG.terrain.verticalExaggeration === 1 ? "True-scale relief" : "Vertical exaggeration";
+    };
+    label();
+    reliefButton.addEventListener("click", () => {
+      const steps = CONFIG.terrain.exaggerationSteps;
+      CONFIG.terrain.verticalExaggeration = steps[(steps.indexOf(CONFIG.terrain.verticalExaggeration) + 1) % steps.length];
+      label();
+      if (currentElevationTile && lastRealStudy) {
+        createTerrain(currentEnvironment, lastRealStudy, currentElevationTile);
+        updateReferenceDetails(lastRealStudy);
+      }
+    });
+  }
+
 
   if (resetButton) {
 
@@ -1767,8 +1793,9 @@ function generateElevation(
     geometry.attributes.position;
 
   if (elevationModel) {
-    const groundWidthMeters = 40075017 * Math.cos(elevationModel.latitude * Math.PI / 180) / (2 ** elevationModel.zoom);
-    const worldPerMeter = CONFIG.terrain.width / groundWidthMeters * 2;
+    const groundWidthMeters = elevationModel.groundWidthMeters
+      ?? 40075017 * Math.cos(elevationModel.latitude * Math.PI / 180) / (2 ** elevationModel.zoom);
+    const worldPerMeter = CONFIG.terrain.width / groundWidthMeters * CONFIG.terrain.verticalExaggeration;
     let maximumHeight = 0;
     for (let index = 0; index < position.count; index += 1) {
       const u = THREE.MathUtils.clamp(position.getX(index) / CONFIG.terrain.width + 0.5, 0, 1);

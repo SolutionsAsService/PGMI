@@ -7,9 +7,13 @@
     "unit_system": "metric",
     "coordinate_system": "WGS84",
     "elevation_unit": "meters",
-    "length_unit": "kilometers"
+    "length_unit": "kilometers",
+    "coordinate_verification": {
+      "method": "Every summit coordinate checked against Mapzen Terrarium DEM (z12, ~30 m/px) with scripts/verify-references.mjs: highest DEM cell within 2 km must lie within 750 m and within 250 m elevation of the listed value.",
+      "verified": "2026-10-12",
+      "known_limitations": "DEM summits read lower than surveyed heights on sharp peaks (SRTM/GMTED resolution); Antarctic and ice-capped summits (Mount Kirkpatrick, Puncak Jaya) differ from current ice-surface heights."
+    }
   },
-
   "environments": {
     "mountains": {
       "id": "mountains",
@@ -44,7 +48,6 @@
         ]
       }
     },
-
     "valley": {
       "id": "valley",
       "name": "Valley",
@@ -78,7 +81,6 @@
         ]
       }
     },
-
     "desert": {
       "id": "desert",
       "name": "Desert",
@@ -114,7 +116,6 @@
         ]
       }
     },
-
     "plateau": {
       "id": "plateau",
       "name": "Plateau",
@@ -150,7 +151,6 @@
         ]
       }
     },
-
     "coastal": {
       "id": "coastal",
       "name": "Coastal",
@@ -185,7 +185,6 @@
         ]
       }
     },
-
     "volcanic": {
       "id": "volcanic",
       "name": "Volcanic",
@@ -222,13 +221,14 @@
       }
     }
   },
-
   "mountain_ranges": [
     {
       "id": "andes",
       "name": "Andes",
       "native_names": [],
-      "continent": ["South America"],
+      "continent": [
+        "South America"
+      ],
       "countries": [
         "Argentina",
         "Bolivia",
@@ -272,12 +272,15 @@
         "cordillera"
       ]
     },
-
     {
       "id": "himalayas",
       "name": "Himalayas",
-      "native_names": ["Himālaya"],
-      "continent": ["Asia"],
+      "native_names": [
+        "Himālaya"
+      ],
+      "continent": [
+        "Asia"
+      ],
       "countries": [
         "Bhutan",
         "China",
@@ -318,12 +321,13 @@
         "high_altitude"
       ]
     },
-
     {
       "id": "karakoram",
       "name": "Karakoram",
       "native_names": [],
-      "continent": ["Asia"],
+      "continent": [
+        "Asia"
+      ],
       "countries": [
         "China",
         "India",
@@ -361,12 +365,13 @@
         "continental_collision"
       ]
     },
-
     {
       "id": "hindu_kush",
       "name": "Hindu Kush",
       "native_names": [],
-      "continent": ["Asia"],
+      "continent": [
+        "Asia"
+      ],
       "countries": [
         "Afghanistan",
         "Pakistan",
@@ -403,12 +408,13 @@
         "central_asia"
       ]
     },
-
     {
       "id": "pamir",
       "name": "Pamir Mountains",
       "native_names": [],
-      "continent": ["Asia"],
+      "continent": [
+        "Asia"
+      ],
       "countries": [
         "Afghanistan",
         "China",
@@ -447,12 +453,15 @@
         "glaciated"
       ]
     },
-
     {
       "id": "kunlun",
       "name": "Kunlun Mountains",
-      "native_names": ["Kunlun Shan"],
-      "continent": ["Asia"],
+      "native_names": [
+        "Kunlun Shan"
+      ],
+      "continent": [
+        "Asia"
+      ],
       "countries": [
         "China"
       ],
@@ -463,8 +472,8 @@
       "highest_peak": {
         "name": "Liushi Shan",
         "elevation_m": 7167,
-        "latitude": 35.5,
-        "longitude": 80.0,
+        "latitude": 35.3158,
+        "longitude": 80.9158,
         "country": "China"
       },
       "approximate_extent": {
@@ -487,12 +496,15 @@
         "central_asia"
       ]
     },
-
     {
       "id": "tian_shan",
       "name": "Tian Shan",
-      "native_names": ["Tianshan"],
-      "continent": ["Asia"],
+      "native_names": [
+        "Tianshan"
+      ],
+      "continent": [
+        "Asia"
+      ],
       "countries": [
         "China",
         "Kazakhstan",
@@ -530,12 +542,13 @@
         "high_altitude"
       ]
     },
-
     {
       "id": "rocky_mountains",
       "name": "Rocky Mountains",
       "native_names": [],
-      "continent": ["North America"],
+      "continent": [
+        "North America"
+      ],
       "countries": [
         "Canada",
         "United States"
@@ -571,12 +584,13 @@
         "north_america"
       ]
     },
-
     {
       "id": "alaska_range",
       "name": "Alaska Range",
       "native_names": [],
-      "continent": ["North America"],
+      "continent": [
+        "North America"
+      ],
       "countries": [
         "United States"
       ],
@@ -610,12 +624,13 @@
         "north_america"
       ]
     },
-
     {
       "id": "appalachians",
       "name": "Appalachian Mountains",
       "native_names": [],
-      "continent": ["North America"],
+      "continent": [
+        "North America"
+      ],
       "countries": [
         "Canada",
         "United States"
@@ -652,12 +667,13 @@
         "north_america"
       ]
     },
-
     {
       "id": "cascade_range",
       "name": "Cascade Range",
       "native_names": [],
-      "continent": ["North America"],
+      "continent": [
+        "North America"
+      ],
       "countries": [
         "Canada",
         "United States"
@@ -692,12 +708,13 @@
         "north_america"
       ]
     },
-
     {
       "id": "sierra_nevada",
       "name": "Sierra Nevada",
       "native_names": [],
-      "continent": ["North America"],
+      "continent": [
+        "North America"
+      ],
       "countries": [
         "United States"
       ],
@@ -731,12 +748,13 @@
         "north_america"
       ]
     },
-
     {
       "id": "alps",
       "name": "Alps",
       "native_names": [],
-      "continent": ["Europe"],
+      "continent": [
+        "Europe"
+      ],
       "countries": [
         "Austria",
         "France",
@@ -778,12 +796,14 @@
         "continental_collision"
       ]
     },
-
     {
       "id": "caucasus",
       "name": "Caucasus Mountains",
       "native_names": [],
-      "continent": ["Europe", "Asia"],
+      "continent": [
+        "Europe",
+        "Asia"
+      ],
       "countries": [
         "Armenia",
         "Azerbaijan",
@@ -797,8 +817,8 @@
       "highest_peak": {
         "name": "Mount Elbrus",
         "elevation_m": 5642,
-        "latitude": 43.355,
-        "longitude": 42.437,
+        "latitude": 43.3499,
+        "longitude": 42.4453,
         "country": "Russia"
       },
       "approximate_extent": {
@@ -822,12 +842,13 @@
         "volcanic"
       ]
     },
-
     {
       "id": "carpathians",
       "name": "Carpathian Mountains",
       "native_names": [],
-      "continent": ["Europe"],
+      "continent": [
+        "Europe"
+      ],
       "countries": [
         "Austria",
         "Czechia",
@@ -869,12 +890,17 @@
         "continental_collision"
       ]
     },
-
     {
       "id": "pyrenees",
       "name": "Pyrenees",
-      "native_names": ["Pirineus", "Pyrénées", "Pireneoak"],
-      "continent": ["Europe"],
+      "native_names": [
+        "Pirineus",
+        "Pyrénées",
+        "Pireneoak"
+      ],
+      "continent": [
+        "Europe"
+      ],
       "countries": [
         "Andorra",
         "France",
@@ -912,12 +938,16 @@
         "andorra"
       ]
     },
-
     {
       "id": "urals",
       "name": "Ural Mountains",
-      "native_names": ["Уральские горы"],
-      "continent": ["Europe", "Asia"],
+      "native_names": [
+        "Уральские горы"
+      ],
+      "continent": [
+        "Europe",
+        "Asia"
+      ],
       "countries": [
         "Russia",
         "Kazakhstan"
@@ -929,8 +959,8 @@
       "highest_peak": {
         "name": "Mount Narodnaya",
         "elevation_m": 1895,
-        "latitude": 65.035,
-        "longitude": 59.254,
+        "latitude": 65.0333,
+        "longitude": 60.1167,
         "country": "Russia"
       },
       "approximate_extent": {
@@ -953,12 +983,13 @@
         "europe_asia_boundary"
       ]
     },
-
     {
       "id": "atlas",
       "name": "Atlas Mountains",
       "native_names": [],
-      "continent": ["Africa"],
+      "continent": [
+        "Africa"
+      ],
       "countries": [
         "Algeria",
         "Morocco",
@@ -995,12 +1026,15 @@
         "continental_collision"
       ]
     },
-
     {
       "id": "drakensberg",
       "name": "Drakensberg",
-      "native_names": ["uKhahlamba"],
-      "continent": ["Africa"],
+      "native_names": [
+        "uKhahlamba"
+      ],
+      "continent": [
+        "Africa"
+      ],
       "countries": [
         "Lesotho",
         "South Africa"
@@ -1012,8 +1046,8 @@
       "highest_peak": {
         "name": "Thabana Ntlenyana",
         "elevation_m": 3482,
-        "latitude": -29.466,
-        "longitude": 29.368,
+        "latitude": -29.4667,
+        "longitude": 29.2667,
         "country": "Lesotho"
       },
       "approximate_extent": {
@@ -1036,12 +1070,13 @@
         "plateau"
       ]
     },
-
     {
       "id": "ethiopian_highlands",
       "name": "Ethiopian Highlands",
       "native_names": [],
-      "continent": ["Africa"],
+      "continent": [
+        "Africa"
+      ],
       "countries": [
         "Ethiopia",
         "Eritrea"
@@ -1076,12 +1111,13 @@
         "volcanic"
       ]
     },
-
     {
       "id": "rwenzori",
       "name": "Rwenzori Mountains",
       "native_names": [],
-      "continent": ["Africa"],
+      "continent": [
+        "Africa"
+      ],
       "countries": [
         "Democratic Republic of the Congo",
         "Uganda"
@@ -1117,12 +1153,13 @@
         "equatorial"
       ]
     },
-
     {
       "id": "great_dividing_range",
       "name": "Great Dividing Range",
       "native_names": [],
-      "continent": ["Australia"],
+      "continent": [
+        "Australia"
+      ],
       "countries": [
         "Australia"
       ],
@@ -1157,12 +1194,15 @@
         "watershed"
       ]
     },
-
     {
       "id": "southern_alps",
       "name": "Southern Alps",
-      "native_names": ["Kā Tiritiri o te Moana"],
-      "continent": ["Oceania"],
+      "native_names": [
+        "Kā Tiritiri o te Moana"
+      ],
+      "continent": [
+        "Oceania"
+      ],
       "countries": [
         "New Zealand"
       ],
@@ -1196,12 +1236,13 @@
         "glaciated"
       ]
     },
-
     {
       "id": "transantarctic",
       "name": "Transantarctic Mountains",
       "native_names": [],
-      "continent": ["Antarctica"],
+      "continent": [
+        "Antarctica"
+      ],
       "countries": [],
       "region": "Antarctica",
       "type": "fault_block_mountain_system",
@@ -1210,8 +1251,8 @@
       "highest_peak": {
         "name": "Mount Kirkpatrick",
         "elevation_m": 4528,
-        "latitude": -84.35,
-        "longitude": 165.25,
+        "latitude": -84.3333,
+        "longitude": 166.4167,
         "country": "Antarctica"
       },
       "approximate_extent": {
@@ -1234,12 +1275,15 @@
         "glaciated"
       ]
     },
-
     {
       "id": "zagros",
       "name": "Zagros Mountains",
-      "native_names": ["Zagros"],
-      "continent": ["Asia"],
+      "native_names": [
+        "Zagros"
+      ],
+      "continent": [
+        "Asia"
+      ],
       "countries": [
         "Iran",
         "Iraq",
@@ -1276,12 +1320,16 @@
         "continental_collision"
       ]
     },
-
     {
       "id": "alborz",
       "name": "Alborz Mountains",
-      "native_names": ["Alborz", "Elburz"],
-      "continent": ["Asia"],
+      "native_names": [
+        "Alborz",
+        "Elburz"
+      ],
+      "continent": [
+        "Asia"
+      ],
       "countries": [
         "Iran"
       ],
@@ -1315,12 +1363,15 @@
         "high_altitude"
       ]
     },
-
     {
       "id": "altai",
       "name": "Altai Mountains",
-      "native_names": ["Altay"],
-      "continent": ["Asia"],
+      "native_names": [
+        "Altay"
+      ],
+      "continent": [
+        "Asia"
+      ],
       "countries": [
         "China",
         "Kazakhstan",
@@ -1358,12 +1409,15 @@
         "continental"
       ]
     },
-
     {
       "id": "western_ghats",
       "name": "Western Ghats",
-      "native_names": ["Sahyadri"],
-      "continent": ["Asia"],
+      "native_names": [
+        "Sahyadri"
+      ],
+      "continent": [
+        "Asia"
+      ],
       "countries": [
         "India"
       ],
@@ -1374,8 +1428,8 @@
       "highest_peak": {
         "name": "Anamudi",
         "elevation_m": 2695,
-        "latitude": 10.166,
-        "longitude": 77.067,
+        "latitude": 10.1696,
+        "longitude": 77.0612,
         "country": "India"
       },
       "approximate_extent": {
@@ -1398,12 +1452,13 @@
         "monsoon"
       ]
     },
-
     {
       "id": "japanese_alps",
       "name": "Japanese Alps",
       "native_names": [],
-      "continent": ["Asia"],
+      "continent": [
+        "Asia"
+      ],
       "countries": [
         "Japan"
       ],
@@ -1437,12 +1492,13 @@
         "plate_convergence"
       ]
     },
-
     {
       "id": "new_guinea_highlands",
       "name": "New Guinea Highlands",
       "native_names": [],
-      "continent": ["Oceania"],
+      "continent": [
+        "Oceania"
+      ],
       "countries": [
         "Indonesia",
         "Papua New Guinea"
@@ -1454,8 +1510,8 @@
       "highest_peak": {
         "name": "Puncak Jaya",
         "elevation_m": 4884,
-        "latitude": -4.083,
-        "longitude": 137.183,
+        "latitude": -4.0789,
+        "longitude": 137.1583,
         "country": "Indonesia"
       },
       "approximate_extent": {
@@ -1479,7 +1535,6 @@
       ]
     }
   ],
-
   "terrain_features": {
     "peaks": [
       {
@@ -1518,16 +1573,16 @@
         "id": "elbrus",
         "name": "Mount Elbrus",
         "elevation_m": 5642,
-        "latitude": 43.355,
-        "longitude": 42.437,
+        "latitude": 43.3499,
+        "longitude": 42.4453,
         "type": "volcanic_peak"
       },
       {
         "id": "kilimanjaro",
         "name": "Mount Kilimanjaro",
         "elevation_m": 5895,
-        "latitude": -3.0674,
-        "longitude": 37.3556,
+        "latitude": -3.0758,
+        "longitude": 37.3533,
         "type": "volcanic_peak"
       },
       {
@@ -1547,7 +1602,6 @@
         "type": "mountain_peak"
       }
     ],
-
     "volcanoes": [
       {
         "id": "fuji",
@@ -1562,8 +1616,8 @@
         "id": "kilimanjaro",
         "name": "Mount Kilimanjaro",
         "elevation_m": 5895,
-        "latitude": -3.0674,
-        "longitude": 37.3556,
+        "latitude": -3.0758,
+        "longitude": 37.3533,
         "country": "Tanzania",
         "type": "stratovolcano"
       },
@@ -1596,7 +1650,6 @@
       }
     ]
   },
-
   "classification": {
     "mountain": {
       "label": "Mountain",
@@ -1627,7 +1680,6 @@
       "description": "Old mountain systems substantially reduced by long-term erosion."
     }
   },
-
   "sources": [
     {
       "id": "global_mountain_inventory",

@@ -1,0 +1,21 @@
+name: CI
+on: [push, pull_request]
+permissions:
+  contents: read
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - run: npm test
+      - name: Serve smoke test
+        run: |
+          PORT=8123 npm start & sleep 2
+          curl -fsS localhost:8123/ | grep -qi "atlas"
+          curl -fsS localhost:8123/data/mountains.json > /dev/null
+          test "$(curl -s -o /dev/null -w '%{http_code}' localhost:8123/.git/config)" = 404
+      - name: Verify catalog coordinates against the DEM
+        run: npm run verify:references -- --strict

@@ -1,0 +1,13 @@
+# shadw.yml v1 — Shadw deployment config (same shape as devhub.yml).
+# Static Three.js app; `npm start` serves it with a zero-dependency Node server on $PORT.
+version: 1
+project: pgmi
+root_dir: .
+target: auto
+build:
+  cache: true
+env:
+  NODE_ENV: production
+deploy:
+  wait: true
+  timeout_minutes: 10

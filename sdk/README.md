@@ -50,3 +50,20 @@ root README.
 Run the dependency-free contract tests with `npm test`. Serve the repository over
 HTTP (`npm run serve`) to allow the viewer to fetch its dataset and vendored
 Three.js modules.
+
+
+## Centered DEM windows (1.2.0)
+
+```js
+import { loadTerrainView, REFERENCE_VIEW_ZOOM } from './sdk/atlas-terrain.js';
+const view = await loadTerrainView(27.9881, 86.925, { zoom: REFERENCE_VIEW_ZOOM['mountain-peak'], windowPx: 512 });
+view.pixelX, view.pixelY            // the requested point — always the window center
+view.groundWidthMeters, view.metersPerPixel
+view.uvToLatLon(0.25, 0.75)         // surface position -> WGS84
+sampleTerrainElevation(view, u, v)  // works on views and single tiles
+```
+
+`loadTerrainView` stitches every Terrarium tile the window overlaps (wrapping at
+±180°) instead of returning the single tile that happens to contain the point.
+`extentCenter(extent)` returns a correct center for boxes that cross the
+antimeridian. `loadTerrariumTile` is kept for compatibility.
